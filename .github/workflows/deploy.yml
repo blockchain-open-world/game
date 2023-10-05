@@ -9,13 +9,21 @@ jobs:
     name: 🎉 Export and Deploy
     runs-on: ubuntu-latest 
     steps:
-      - uses: actions/checkout@v3
-      - uses: paulloz/godot-action@v1.2.2
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v3
+
+      - name: export game
+        id: export
+        uses: firebelley/godot-export@v5.2.0
         with:
-          version: 4.1.1
-      - run: |
-          godot --version
-          godot --export Web ./dist
+          godot_executable_download_url: https://downloads.tuxfamily.org/godotengine/4.1.1/Godot_v4.1.1-stable_linux.x86_64.zip
+          godot_export_templates_download_url: https://downloads.tuxfamily.org/godotengine/4.1.1/Godot_v4.1.1-stable_export_templates.tpz
+          relative_project_path: ./
+          archive_output: true
+      
+      - name: 🔨 Build Project
+        run: |
+          ls
 
       - name: 📂 Sync files
         uses: SamKirkland/FTP-Deploy-Action@4.3.3
