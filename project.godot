@@ -102,6 +102,7 @@ change_camera={
 3d_physics/layer_1="player"
 3d_physics/layer_2="blocks"
 3d_physics/layer_3="itens"
+3d_physics/layer_4="chunks"
 
 [rendering]
 

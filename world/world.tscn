@@ -17,12 +17,17 @@ sky_material = SubResource("ProceduralSkyMaterial_fu8nm")
 [sub_resource type="Environment" id="Environment_iecly"]
 background_mode = 2
 sky = SubResource("Sky_eepef")
+fog_light_color = Color(0, 0, 0, 1)
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.3458
+volumetric_fog_albedo = Color(0.258824, 0.258824, 0.258824, 1)
 
 [node name="world" type="Node3D"]
 script = ExtResource("1_juall")
 
 [node name="player" parent="." instance=ExtResource("1_ycrrn")]
-transform = Transform3D(-0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, -0.707107, 15, 13, 13)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 8, 8)
+collision_mask = 15
 
 [node name="info" type="Label" parent="."]
 offset_right = 59.0

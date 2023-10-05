@@ -15,34 +15,39 @@ func _process(delta):
 			Network.clearMessage(msg)
 			return;
 
+func _addBlockInstance(blockInstance):
+	if blockInstance.faces & Main.FACES_RIGHT:
+		blockInstance.get_child(5).visible = false
+	if blockInstance.faces & Main.FACES_LEFT:
+		blockInstance.get_child(4).visible = false
+	if blockInstance.faces & Main.FACES_BACK:
+		blockInstance.get_child(3).visible = false
+	if blockInstance.faces & Main.FACES_FRONT:
+		blockInstance.get_child(2).visible = false
+	if blockInstance.faces & Main.FACES_BOTTOM:
+		blockInstance.get_child(1).visible = false
+	if blockInstance.faces & Main.FACES_TOP:
+		blockInstance.get_child(0).visible = false
+		
+	var staticBody = StaticBody3D.new()
+	var collisor = CollisionShape3D.new()
+	collisor.shape = BoxShape3D.new()
+	staticBody.collision_layer = 0x02;
+	staticBody.collision_mask = 0;
+	staticBody.add_child(collisor)
+	blockInstance.add_child(staticBody)
+	staticBody.position = Vector3(0.5,0.5,0.5)
+		
+	add_child(blockInstance)
+
 func receiveBlocksInstance(initialBlocksInstance):
+	$StaticBody3D/CollisionShape3D.disabled = true
+	$MeshInstance3D.visible = false
 	for i in range(len(initialBlocksInstance)):
 		var blockInstance = initialBlocksInstance[i]
 		blocks[blockInstance.blockKey] = blockInstance
 		
-		#if blockInstance.faces & Main.FACES_RIGHT:
-		#	blockInstance.get_child(5).queue_free()
-		#if blockInstance.faces & Main.FACES_LEFT:
-		#	blockInstance.get_child(4).queue_free()
-		#if blockInstance.faces & Main.FACES_BACK:
-		#	blockInstance.get_child(3).queue_free()
-		#if blockInstance.faces & Main.FACES_FRONT:
-		#	blockInstance.get_child(2).queue_free()
-		#if blockInstance.faces & Main.FACES_BOTTOM:
-		#	blockInstance.get_child(1).queue_free()
-		#if blockInstance.faces & Main.FACES_TOP:
-		#	blockInstance.get_child(0).queue_free()
-		
-		var staticBody = StaticBody3D.new()
-		var collisor = CollisionShape3D.new()
-		collisor.shape = BoxShape3D.new()
-		staticBody.collision_layer = 0x02;
-		staticBody.collision_mask = 0;
-		staticBody.add_child(collisor)
-		blockInstance.add_child(staticBody)
-		staticBody.position = Vector3(0.5,0.5,0.5)
-		
-		add_child(blockInstance)
+		_addBlockInstance(blockInstance)
 
 func mintBlock(blockPosition):
 	var position = {}
@@ -69,5 +74,5 @@ func _onMintBlock(data):
 			oldBlock.queue_free()
 		var blockInstance = Main.instanceBlock(blockInfo);
 		chunk.blocks[newBlockKey] = blockInstance
-		chunk.add_child(blockInstance)
+		chunk._addBlockInstance(blockInstance)
 	block.queue_free()
