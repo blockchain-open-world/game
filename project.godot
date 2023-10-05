@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+Network="*res://network.gd"
 Main="*res://main.gd"
 
 [display]

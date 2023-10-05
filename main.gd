@@ -28,66 +28,6 @@ var deleteHorizon = 5
 var chunksList = []
 var chunksMap = {}
 
-#const websocket_url = "ws://localhost:8081/connect"
-const websocket_url = "wss://node1.blockchainopenworld.com/connect"
-var socket = WebSocketPeer.new()
-var rng = RandomNumberGenerator.new()
-var messages = []
-var messagesToSend = []
-
-func socket_start():
-	var tls = TLSOptions.client_unsafe()
-	socket.max_queued_packets = 1
-	socket.encode_buffer_max_size = 1
-	socket.connect_to_url(websocket_url, tls)
-	#socket.connect_to_url(websocket_url)
-
-func socket_process(delta):
-	var state = socket.get_ready_state()
-	if state == WebSocketPeer.STATE_CONNECTING || state == WebSocketPeer.STATE_OPEN:
-		socket.poll()
-	else:
-		return;
-	if state == WebSocketPeer.STATE_OPEN:
-		for i in range(len(messagesToSend)):
-			var jsonMsg = JSON.stringify(messagesToSend[i])
-			socket.send_text(jsonMsg)
-		messagesToSend = []
-		while socket.get_available_packet_count():
-			var error = socket.get_packet_error()
-			print(error)
-			var response = socket.get_packet().get_string_from_utf8()
-			print(response)
-			response = JSON.parse_string(response)
-			for i in range(len(messages)):
-				var msg = messages[i]
-				if msg.id == response.id:
-					msg.response = response.data
-					msg.received = true
-	elif state == WebSocketPeer.STATE_CLOSING:
-		# Keep polling to achieve proper close.
-		pass
-	elif state == WebSocketPeer.STATE_CLOSED:
-		var code = socket.get_close_code()
-		var reason = socket.get_close_reason()
-		print("WebSocket closed with code: %d, reason %s. Clean: %s" % [code, reason, code != -1])
-		set_process(false) # Stop processing.
-
-func socket_send(method, data):
-	var msg = {}
-	msg.id = rng.randi()
-	msg.data = data
-	msg.method = method
-	msg.response = {}
-	msg.received = false
-	messages.append(msg)
-	messagesToSend.append(msg)
-	print(JSON.stringify(msg))
-	return msg;
-
-func socket_clearMessage(msg):
-	messages = messages.filter(func (m): return m.id != msg.id)
-
 func formatKey(x, y, z):
 	return ("i_%s_%s_%s" % [x, y, z]).replace("-", "n")
 	

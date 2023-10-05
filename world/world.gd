@@ -14,11 +14,11 @@ var _selectedGenerateChunk = null
 var _chunkMessage = null
 
 func _ready():
-	Main.socket_start()
+	Network.start(self)
 	_chunkGenerator.start()
 
 func _process(delta):
-	Main.socket_process(delta)
+	Network.process()
 	_checkOnlineChunks()
 	_checkRemoveChunks()
 	_loadChunks()
@@ -63,7 +63,7 @@ func _loadChunks():
 		if _chunkMessage != null:
 			if _chunkMessage.received:
 				_chunkGenerator.instanciateChunk(_chunkMessage.response)
-				Main.socket_clearMessage(_chunkMessage)
+				Network.clearMessage(_chunkMessage)
 				_chunkMessage = null
 			return;
 		# check if chunk is instancied
@@ -92,7 +92,7 @@ func _loadChunks():
 			position.x = bestChunk.chunkPosition.x
 			position.y = bestChunk.chunkPosition.y
 			position.z = bestChunk.chunkPosition.z
-			_chunkMessage = Main.socket_send("chunk", position)
+			_chunkMessage = Network.send("chunk", position)
 			_selectedGenerateChunk = bestChunk
 			print("start load chunk %s - left %s" % [bestChunk.chunkKey, len(loadChunks)])
 
@@ -140,4 +140,5 @@ func loadModel(filename):
 				anim.play("Attack")
 
 func _exit_tree():
+	Network.stop()
 	_chunkGenerator.exit()

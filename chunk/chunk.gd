@@ -12,7 +12,7 @@ func _process(delta):
 		if msg.received:
 			_onMintBlock(msg.response)
 			mintMessages = mintMessages.filter(func (m): return m.id != msg.id)
-			Main.socket_clearMessage(msg)
+			Network.clearMessage(msg)
 			return;
 
 func receiveBlocksInstance(initialBlocksInstance):
@@ -37,9 +37,9 @@ func mintBlock(blockPosition):
 	position.x = blockPosition.x
 	position.y = blockPosition.y
 	position.z = blockPosition.z
-	var msg = Main.socket_send("mint_block", position)
+	var msg = Network.send("mint_block", position)
 	mintMessages.push_back(msg)
-	
+
 func _onMintBlock(data):
 	if not data.success:
 		return
