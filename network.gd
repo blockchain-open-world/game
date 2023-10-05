@@ -26,15 +26,11 @@ func _http_process():
 		var json = JSON.stringify(_httpOpenRequest)
 		var headers = ["Content-Type: application/json"]
 		var url = Contants.server_url % _httpOpenRequest.method
-		print(url)
 		_httpServer.request(url, headers, HTTPClient.METHOD_POST, json)
-
 		_messagesToSend = _messagesToSend.filter(func (m): return m.id != _httpOpenRequest.id)
-		print("send %s" % json)
 
 func _on_request_completed(result, response_code, headers, body):
 	var json = body.get_string_from_utf8()
-	print("response %s" % result)
 	var response = JSON.parse_string(json)
 	_httpOpenRequest.response = response.data
 	_httpOpenRequest.received = true

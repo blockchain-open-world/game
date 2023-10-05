@@ -82,43 +82,6 @@ func instanceBlock(blockInfo):
 	
 	var faces: int = int(blockInfo.m)
 	
-	var material = _getMaterialBlock(blockInfo.t)
-	if faces & FACES_RIGHT:
-		blockInstance.get_child(5).queue_free()
-	else:
-		var face = blockInstance.get_child(5)
-		face.material_override = material[face.name]
-		
-	if faces & FACES_LEFT:
-		blockInstance.get_child(4).queue_free()
-	else:
-		var face = blockInstance.get_child(4)
-		face.material_override = material[face.name]
-		
-	if faces & FACES_BACK:
-		blockInstance.get_child(3).queue_free()
-	else:
-		var face = blockInstance.get_child(3)
-		face.material_override = material[face.name]
-		
-	if faces & FACES_FRONT:
-		blockInstance.get_child(2).queue_free()
-	else:
-		var face = blockInstance.get_child(2)
-		face.material_override = material[face.name]
-		
-	if faces & FACES_BOTTOM:
-		blockInstance.get_child(1).queue_free()
-	else:
-		var face = blockInstance.get_child(1)
-		face.material_override = material[face.name]
-		
-	if faces & FACES_TOP:
-		blockInstance.get_child(0).queue_free()
-	else:
-		var face = blockInstance.get_child(0)
-		face.material_override = material[face.name]
-	
 	blockInstance.globalPosition = Vector3i(blockInfo.x, blockInfo.y, blockInfo.z)
 	blockInstance.blockKey = blockKey
 	blockInstance.type = blockInfo.t
