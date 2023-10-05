@@ -13,7 +13,6 @@ const tile022 = preload("res://chunk/textures/tile022.png")
 
 var blockMaterial = {};
 
-const serverURL = "http://localhost:8081"
 const CHUNK_SIZE = 16
 
 const FACES_RIGHT:int = 1
@@ -29,7 +28,7 @@ var deleteHorizon = 5
 var chunksList = []
 var chunksMap = {}
 
-const websocket_url = "ws://127.0.0.1:8082"
+const websocket_url = "wss://node1.blockchainopenworld.com/connect"
 var socket = WebSocketPeer.new()
 var rng = RandomNumberGenerator.new()
 var messages = []
