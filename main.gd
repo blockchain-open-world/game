@@ -28,7 +28,7 @@ var deleteHorizon = 5
 var chunksList = []
 var chunksMap = {}
 
-const websocket_url = "wss://node1.blockchainopenworld.com/connect"
+const websocket_url = "ws://node1.blockchainopenworld.com/connect"
 var socket = WebSocketPeer.new()
 var rng = RandomNumberGenerator.new()
 var messages = []
@@ -38,8 +38,9 @@ func socket_start():
 	socket.connect_to_url(websocket_url)
 
 func socket_process(delta):
-	socket.poll()
 	var state = socket.get_ready_state()
+	if state == WebSocketPeer.STATE_CONNECTING || state == WebSocketPeer.STATE_OPEN:
+		socket.poll()
 	if state == WebSocketPeer.STATE_OPEN:
 		for i in range(len(messagesToSend)):
 			var jsonMsg = JSON.stringify(messagesToSend[i])
