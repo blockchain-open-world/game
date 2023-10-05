@@ -1,0 +1,29 @@
+name: 🚀 Deploy
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  test-and-deploy:
+    name: 🎉 Export and Deploy
+    runs-on: ubuntu-latest 
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v3
+
+      - name: 🤖 Use Godot Action
+      - uses: paulloz/godot-action@v1.2.2
+        with:
+        version: 4.0
+      - run: |
+        godot --version
+        godot --export Web ./dist
+
+      - name: 📂 Sync files
+        uses: SamKirkland/FTP-Deploy-Action@4.3.3
+        with:
+          local-dir: ./dist/
+          server: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          password: ${{ secrets.DEPLOY_PASS }}
