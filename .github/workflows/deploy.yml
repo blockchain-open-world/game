@@ -15,7 +15,7 @@ jobs:
       - name: 🤖 Change constants
         run: |
           rm constants.gd
-          cp deploy.constants.gd constants.gd
+          cp constants.deploy constants.gd
 
       - name: 🔨 Export Project
         uses: firebelley/godot-export@v5.2.0
