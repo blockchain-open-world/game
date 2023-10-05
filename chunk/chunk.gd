@@ -20,6 +20,19 @@ func receiveBlocksInstance(initialBlocksInstance):
 		var blockInstance = initialBlocksInstance[i]
 		blocks[blockInstance.blockKey] = blockInstance
 		
+		if blockInstance.faces & Main.FACES_RIGHT:
+			blockInstance.get_child(5).queue_free()
+		if blockInstance.faces & Main.FACES_LEFT:
+			blockInstance.get_child(4).queue_free()
+		if blockInstance.faces & Main.FACES_BACK:
+			blockInstance.get_child(3).queue_free()
+		if blockInstance.faces & Main.FACES_FRONT:
+			blockInstance.get_child(2).queue_free()
+		if blockInstance.faces & Main.FACES_BOTTOM:
+			blockInstance.get_child(1).queue_free()
+		if blockInstance.faces & Main.FACES_TOP:
+			blockInstance.get_child(0).queue_free()
+		
 		var staticBody = StaticBody3D.new()
 		var collisor = CollisionShape3D.new()
 		collisor.shape = BoxShape3D.new()

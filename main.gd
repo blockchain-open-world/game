@@ -81,6 +81,27 @@ func instanceBlock(blockInfo):
 	var blockInstance = Block.instantiate()
 	
 	var faces: int = int(blockInfo.m)
+	blockInstance.faces = faces
+	
+	var material = _getMaterialBlock(blockInfo.t)
+	if not (faces & FACES_RIGHT):
+		var face = blockInstance.get_child(5)
+		face.material_override = material[face.name]
+	if not (faces & FACES_LEFT):
+		var face = blockInstance.get_child(4)
+		face.material_override = material[face.name]
+	if not (faces & FACES_BACK):
+		var face = blockInstance.get_child(3)
+		face.material_override = material[face.name]
+	if not (faces & FACES_FRONT):
+		var face = blockInstance.get_child(2)
+		face.material_override = material[face.name]
+	if not (faces & FACES_BOTTOM):
+		var face = blockInstance.get_child(1)
+		face.material_override = material[face.name]
+	if not (faces & FACES_TOP):
+		var face = blockInstance.get_child(0)
+		face.material_override = material[face.name]
 	
 	blockInstance.globalPosition = Vector3i(blockInfo.x, blockInfo.y, blockInfo.z)
 	blockInstance.blockKey = blockKey
