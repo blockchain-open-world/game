@@ -37,8 +37,8 @@ var messagesToSend = []
 
 func socket_start():
 	var tls = TLSOptions.client_unsafe()
-	socket.max_queued_packets = 1000000
-	socket.encode_buffer_max_size = 1000000
+	socket.max_queued_packets = 1
+	socket.encode_buffer_max_size = 1
 	socket.connect_to_url(websocket_url, tls)
 	#socket.connect_to_url(websocket_url)
 
@@ -54,6 +54,8 @@ func socket_process(delta):
 			socket.send_text(jsonMsg)
 		messagesToSend = []
 		while socket.get_available_packet_count():
+			var error = socket.get_packet_error()
+			print(error)
 			var response = socket.get_packet().get_string_from_utf8()
 			print(response)
 			response = JSON.parse_string(response)
