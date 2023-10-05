@@ -5,11 +5,11 @@ var Block = preload("res://block/block.tscn")
 const TestBlock = preload("res://block/block.glb")
 
 const tile000 = preload("res://chunk/textures/tile000.png")
-const tile001 = preload("res://chunk/textures/tile001.png")
+const tile031 = preload("res://chunk/textures/tile031.png")
 const tile002 = preload("res://chunk/textures/tile002.png")
 const tile003 = preload("res://chunk/textures/tile003.png")
-const tile016 = preload("res://chunk/textures/tile016.png")
-const tile022 = preload("res://chunk/textures/tile022.png")
+const tile016 = preload("res://chunk/textures/tile024.png")
+const tile022 = preload("res://chunk/textures/tile024.png")
 
 var blockMaterial = {};
 
@@ -161,7 +161,7 @@ func _getMaterialType2():
 func _getMaterialType3():
 	var material = {}
 	var top = StandardMaterial3D.new()
-	top.albedo_texture = tile001
+	top.albedo_texture = tile031
 	
 	material["top"] = top
 	material["bottom"] = top

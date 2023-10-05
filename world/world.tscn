@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://bpbms4eco2ak8"]
+[gd_scene load_steps=7 format=3 uid="uid://bpbms4eco2ak8"]
 
 [ext_resource type="Script" path="res://world/world.gd" id="1_juall"]
 [ext_resource type="PackedScene" uid="uid://dvqoxnk7y67kw" path="res://player/player.tscn" id="1_ycrrn"]
@@ -9,18 +9,10 @@ line_spacing = 2.0
 outline_size = 3
 outline_color = Color(0, 0, 0, 1)
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_fu8nm"]
+[sub_resource type="Environment" id="Environment_dakss"]
+volumetric_fog_albedo = Color(0, 0, 0, 1)
 
-[sub_resource type="Sky" id="Sky_eepef"]
-sky_material = SubResource("ProceduralSkyMaterial_fu8nm")
-
-[sub_resource type="Environment" id="Environment_iecly"]
-background_mode = 2
-sky = SubResource("Sky_eepef")
-fog_light_color = Color(0, 0, 0, 1)
-volumetric_fog_enabled = true
-volumetric_fog_density = 0.3458
-volumetric_fog_albedo = Color(0.258824, 0.258824, 0.258824, 1)
+[sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_v11m2"]
 
 [node name="world" type="Node3D"]
 script = ExtResource("1_juall")
@@ -39,10 +31,11 @@ label_settings = SubResource("LabelSettings_ec3ln")
 visible = false
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, -0.555091, 0.831789, 0, -0.831789, -0.555091, 0, 21.7534, 0)
+transform = Transform3D(0.716801, -0.579988, -0.387053, 0, -0.555091, 0.831789, -0.697278, -0.596228, -0.39789, -97.9024, 21.7534, 0)
 
 [node name="DirectionalLight3D2" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 0.0381261, 0.999273, 0, -0.999273, 0.0381261, 0, 21.7534, 14.975)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_iecly")
+environment = SubResource("Environment_dakss")
+camera_attributes = SubResource("CameraAttributesPractical_v11m2")
