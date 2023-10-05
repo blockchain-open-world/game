@@ -8,6 +8,7 @@ var _socket = WebSocketPeer.new()
 var _rng = RandomNumberGenerator.new()
 var _messages = []
 var _messagesToSend = []
+const _useWebsockets = true
 
 func _http_start(scene):
 	scene.add_child(_httpServer)
@@ -58,9 +59,7 @@ func _socket_process():
 		_messagesToSend = []
 		while _socket.get_available_packet_count():
 			var error = _socket.get_packet_error()
-			print(error)
 			var response = _socket.get_packet().get_string_from_utf8()
-			print(response)
 			response = JSON.parse_string(response)
 			for i in range(len(_messages)):
 				var msg = _messages[i]
@@ -76,16 +75,22 @@ func _socket_process():
 		print("WebSocket closed with code: %d, reason %s. Clean: %s" % [code, reason, code != -1])
 
 func start(scene):
-	#_socket_start()
-	_http_start(scene)
+	if _useWebsockets:
+		_socket_start()
+	else:
+		_http_start(scene)
 
 func process():
-	#_socket_process()
-	_http_process()
+	if _useWebsockets:
+		_socket_process()
+	else:
+		_http_process()
 
 func stop():
-	#_socket_stop()
-	_http_stop()
+	if _useWebsockets:
+		_socket_stop()
+	else:
+		_http_stop()
 
 func send(method, data):
 	var msg = {}

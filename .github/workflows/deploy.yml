@@ -12,6 +12,11 @@ jobs:
       - name: 🚚 Get latest code
         uses: actions/checkout@v3
       
+      - name: 🤖 Change constants
+        run: |
+          rm constants.gd
+          cp deploy.constants.gd constants.gd
+
       - name: 🔨 Export Project
         uses: firebelley/godot-export@v5.2.0
         with:
