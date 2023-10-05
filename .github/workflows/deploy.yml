@@ -9,10 +9,7 @@ jobs:
     name: 🎉 Export and Deploy
     runs-on: ubuntu-latest 
     steps:
-      - name: 🚚 Get latest code
-        uses: actions/checkout@v3
-
-      - name: 🤖 Use Godot Action
+      - uses: actions/checkout@v3
       - uses: paulloz/godot-action@v1.2.2
         with:
           version: 4.1
