@@ -15,10 +15,10 @@ jobs:
       - name: 🤖 Use Godot Action
       - uses: paulloz/godot-action@v1.2.2
         with:
-        version: 4.0
+          version: 4.1
       - run: |
-        godot --version
-        godot --export Web ./dist
+          godot --version
+          godot --export Web ./dist
 
       - name: 📂 Sync files
         uses: SamKirkland/FTP-Deploy-Action@4.3.3
