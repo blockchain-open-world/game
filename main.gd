@@ -28,6 +28,7 @@ var deleteHorizon = 5
 var chunksList = []
 var chunksMap = {}
 
+#const websocket_url = "ws://localhost:8081/connect"
 const websocket_url = "wss://node1.blockchainopenworld.com/connect"
 var socket = WebSocketPeer.new()
 var rng = RandomNumberGenerator.new()
@@ -36,7 +37,10 @@ var messagesToSend = []
 
 func socket_start():
 	var tls = TLSOptions.client_unsafe()
+	socket.max_queued_packets = 1000000
+	socket.encode_buffer_max_size = 1000000
 	socket.connect_to_url(websocket_url, tls)
+	#socket.connect_to_url(websocket_url)
 
 func socket_process(delta):
 	var state = socket.get_ready_state()
