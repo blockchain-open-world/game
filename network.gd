@@ -80,16 +80,16 @@ func _socket_process():
 		print("WebSocket closed with code: %d, reason %s. Clean: %s" % [code, reason, code != -1])
 
 func start(scene):
-	_socket_start()
-	#_http_start(scene)
+	#_socket_start()
+	_http_start(scene)
 
 func process():
-	_socket_process()
-	#_http_process()
+	#_socket_process()
+	_http_process()
 
 func stop():
-	_socket_stop()
-	#_http_stop()
+	#_socket_stop()
+	_http_stop()
 
 func send(method, data):
 	var msg = {}

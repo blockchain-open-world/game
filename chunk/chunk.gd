@@ -18,19 +18,18 @@ func _process(delta):
 func receiveBlocksInstance(initialBlocksInstance):
 	for i in range(len(initialBlocksInstance)):
 		var blockInstance = initialBlocksInstance[i]
-		if blockInstance != null or true:
-			blocks[blockInstance.blockKey] = blockInstance
-			
-			var staticBody = StaticBody3D.new()
-			var collisor = CollisionShape3D.new()
-			collisor.shape = BoxShape3D.new()
-			staticBody.collision_layer = 0x02;
-			staticBody.collision_mask = 0;
-			staticBody.add_child(collisor)
-			blockInstance.add_child(staticBody)
-			staticBody.position = Vector3(0.5,0.5,0.5)
-			
-			add_child(blockInstance)
+		blocks[blockInstance.blockKey] = blockInstance
+		
+		var staticBody = StaticBody3D.new()
+		var collisor = CollisionShape3D.new()
+		collisor.shape = BoxShape3D.new()
+		staticBody.collision_layer = 0x02;
+		staticBody.collision_mask = 0;
+		staticBody.add_child(collisor)
+		blockInstance.add_child(staticBody)
+		staticBody.position = Vector3(0.5,0.5,0.5)
+		
+		add_child(blockInstance)
 
 func mintBlock(blockPosition):
 	var position = {}
