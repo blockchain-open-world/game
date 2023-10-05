@@ -25,6 +25,7 @@ jobs:
 
       - name: 🔨 Export Project
         run: |
+          ls
           godot --install-export-templates --export-release --headless ./project.godot Web
 
       - name: 📂 Sync files
