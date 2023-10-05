@@ -1,0 +1,38 @@
+[gd_scene load_steps=3 format=3 uid="uid://cdmipgoa468ux"]
+
+[ext_resource type="Script" path="res://block/block.gd" id="1_vu3cs"]
+
+[sub_resource type="QuadMesh" id="QuadMesh_6nb1d"]
+
+[node name="block" type="Node3D"]
+script = ExtResource("1_vu3cs")
+
+[node name="top" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0.5, 1, 0.5)
+mesh = SubResource("QuadMesh_6nb1d")
+skeleton = NodePath("")
+
+[node name="bottom" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0.5, 0, 0.5)
+mesh = SubResource("QuadMesh_6nb1d")
+skeleton = NodePath("")
+
+[node name="front" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.5, 1)
+mesh = SubResource("QuadMesh_6nb1d")
+skeleton = NodePath("")
+
+[node name="back" type="MeshInstance3D" parent="."]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0.5, 0.5, 0)
+mesh = SubResource("QuadMesh_6nb1d")
+skeleton = NodePath("")
+
+[node name="left" type="MeshInstance3D" parent="."]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 1, 0.5, 0.5)
+mesh = SubResource("QuadMesh_6nb1d")
+skeleton = NodePath("")
+
+[node name="right" type="MeshInstance3D" parent="."]
+transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0.5, 0.5)
+mesh = SubResource("QuadMesh_6nb1d")
+skeleton = NodePath("")

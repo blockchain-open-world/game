@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3 uid="uid://c4k07v18duecw"]
+
+[ext_resource type="Script" path="res://chunk/chunk.gd" id="1_mxemr"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_0ytf4"]
+size = Vector3(16, 16, 16)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_iefsr"]
+transparency = 1
+albedo_color = Color(0.913725, 0.890196, 0.427451, 0.392157)
+
+[node name="chunk" type="Node3D"]
+script = ExtResource("1_mxemr")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 8, 8)
+visible = false
+mesh = SubResource("BoxMesh_0ytf4")
+skeleton = NodePath("")
+surface_material_override/0 = SubResource("StandardMaterial3D_iefsr")
