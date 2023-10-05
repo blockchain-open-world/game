@@ -24,11 +24,14 @@ jobs:
         run: |
           mkdir dist
           cp /home/runner/.local/share/godot/builds/Web/* ./dist/
+          cp server.py ./dist/server.py
 
       - name: 📂 Sync files
-        uses: SamKirkland/FTP-Deploy-Action@4.3.3
-        with:
-          local-dir: ./dist/
-          server: ${{ secrets.DEPLOY_HOST }}
+        uses: appleboy/scp-action@master
+        with: 
+          host: ${{ secrets.DEPLOY_HOST }}
           username: ${{ secrets.DEPLOY_USER }}
           password: ${{ secrets.DEPLOY_PASS }}
+          source: "./dist/"
+          target: ${{ secrets.DEPLOY_PATH }}
+          strip_components: 1
