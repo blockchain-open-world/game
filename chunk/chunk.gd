@@ -14,14 +14,28 @@ func _process(delta):
 			Network.clearMessage(msg)
 			return;
 
+func addBlock(block):
+	blocks[block.blockKey] = block
+	Main.blocksCount += 1
+	block.enable()
+	if block.isNew:
+		get_parent().add_child(block)
+		block.isNew = false
+
+func removeBlock(block):
+	blocks.erase(block)
+	Main.blocksCount -= 1
+	block.disable()
+	ChunkGenerator.oldBlocks.push_front(block)
+
+
 func receiveBlocksInstance(initialBlocksInstance):
 	$StaticBody3D/CollisionShape3D.disabled = true
 	$MeshInstance3D.visible = false
 	for i in range(len(initialBlocksInstance)):
 		var blockInstance = initialBlocksInstance[i]
 		blocks[blockInstance.blockKey] = blockInstance
-		Main.blocksCount += 1
-		add_child(blockInstance)
+		addBlock(blockInstance)
 
 func mintBlock(blockPosition):
 	var position = {}
@@ -37,7 +51,6 @@ func _onMintBlock(data):
 	
 	var blockKey = Main.formatKey(data.minedBlock.x, data.minedBlock.y, data.minedBlock.z)
 	var block = blocks[blockKey]
-	blocks.erase(block)
 	
 	for i in range(len(data.blocks)):
 		var blockInfo = data.blocks[i]
@@ -47,20 +60,16 @@ func _onMintBlock(data):
 			var oldBlock = chunk.blocks[newBlockKey]
 			Main.instanceBlock(blockInfo, oldBlock);
 		else:
-			Main.blocksCount += 1
 			var blockInstance = Main.instanceBlock(blockInfo, null);
 			chunk.blocks[newBlockKey] = blockInstance
-			chunk.add_child(blockInstance)
-		
-	remove_child(block)
-	ChunkGenerator.oldBlocks.push_front(block)
+			chunk.addBlock(blockInstance)
+			
+	removeBlock(block)
 
 func exclude():
 	for k in blocks:
 		var block = blocks[k]
-		remove_child(block)
-		ChunkGenerator.oldBlocks.push_front(block)
-		Main.blocksCount -= 1
+		removeBlock(block)
 	blocks = {}
 	chunkPosition = Vector3i.ZERO
 	chunkKey = ""

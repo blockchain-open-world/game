@@ -18,12 +18,12 @@ var _newBlocks = []
 func _ready():
 	_mutex = Mutex.new()
 	_thread = Thread.new()
-	#_thread.start(_thread_function)
+	_thread.start(_thread_function)
 
 func _thread_function():
 	for j in range(100):
 		var arr = []
-		for i in range(500):
+		for i in range(300):
 			var b = Block.instantiate()
 			arr.push_front(b)
 			

@@ -114,7 +114,8 @@ func instanceBlock(blockInfo, blockInstance):
 	blockInstance.type = blockInfo.t
 	
 	blockInstance.globalPosition = Vector3i(blockInfo.x, blockInfo.y, blockInfo.z)
-	blockInstance.position = transformChunkLocalPosition(blockInstance.globalPosition)
+	blockInstance.position = Vector3i(blockInfo.x, blockInfo.y, blockInfo.z)
+	#blockInstance.position = transformChunkLocalPosition(blockInstance.globalPosition)
 	return blockInstance;
 
 func _getMaterialBlock(type):
