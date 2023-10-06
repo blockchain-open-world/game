@@ -63,10 +63,9 @@ func _onMintBlock(data):
 			var blockInstance = Main.instanceBlock(blockInfo, null);
 			chunk.blocks[newBlockKey] = blockInstance
 			chunk.addBlock(blockInstance)
-			
 	removeBlock(block)
 
-func exclude():
+func enable():
 	for k in blocks:
 		var block = blocks[k]
 		removeBlock(block)
@@ -76,3 +75,14 @@ func exclude():
 	mintMessages = []
 	$StaticBody3D/CollisionShape3D.disabled = false
 	$MeshInstance3D.visible = true
+
+func disable():
+	for k in blocks:
+		var block = blocks[k]
+		removeBlock(block)
+	blocks = {}
+	chunkPosition = Vector3i.ZERO
+	chunkKey = ""
+	mintMessages = []
+	$StaticBody3D/CollisionShape3D.disabled = true
+	$MeshInstance3D.visible = false

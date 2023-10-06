@@ -49,6 +49,7 @@ func instanceChunk(chunkX, chunkY, chunkZ):
 		chunk = oldChunks.pop_back()
 	if chunk == null:
 		chunk = Chunk.instantiate()
+	chunk.enable()
 	chunk.chunkPosition = Vector3i(chunkX, chunkY, chunkZ)
 	chunk.position = Vector3(CHUNK_SIZE * chunkX, CHUNK_SIZE * chunkY, CHUNK_SIZE * chunkZ)
 	chunk.chunkKey = chunkKey
@@ -61,7 +62,7 @@ func removeChunk(chunkKey):
 		var chunk = chunksMap[chunkKey]
 		chunksMap.erase(chunkKey)
 		chunksList = chunksList.filter(func (key): return key != chunkKey)
-		chunk.exclude()
+		chunk.disable()
 		oldChunks.push_front(chunk)
 
 func transformChunkPosition(position):
