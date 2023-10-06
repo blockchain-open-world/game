@@ -23,7 +23,7 @@ func _ready():
 func _thread_function():
 	for j in range(100):
 		var arr = []
-		for i in range(1000):
+		for i in range(500):
 			var b = Block.instantiate()
 			arr.push_front(b)
 			

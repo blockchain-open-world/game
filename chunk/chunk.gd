@@ -47,6 +47,7 @@ func _onMintBlock(data):
 			var oldBlock = chunk.blocks[newBlockKey]
 			Main.instanceBlock(blockInfo, oldBlock);
 		else:
+			Main.blocksCount += 1
 			var blockInstance = Main.instanceBlock(blockInfo, null);
 			chunk.blocks[newBlockKey] = blockInstance
 			chunk.add_child(blockInstance)
@@ -59,6 +60,7 @@ func exclude():
 		var block = blocks[k]
 		remove_child(block)
 		ChunkGenerator.oldBlocks.push_front(block)
+		Main.blocksCount -= 1
 	blocks = {}
 	chunkPosition = Vector3i.ZERO
 	chunkKey = ""
