@@ -18,7 +18,7 @@ var _newBlocks = []
 func _ready():
 	_mutex = Mutex.new()
 	_thread = Thread.new()
-	_thread.start(_thread_function)
+	#_thread.start(_thread_function)
 
 func _thread_function():
 	for j in range(100):
@@ -45,11 +45,11 @@ func _process(delta):
 				if len(oldBlocks) > 0:
 					blockInstance = oldBlocks.pop_back()
 					
-				if blockInstance == null:
-					_mutex.lock()
-					if len(_newBlocks) > 0:
-						blockInstance = _newBlocks.pop_back()
-					_mutex.unlock()
+				#if blockInstance == null:
+				#	_mutex.lock()
+				#	if len(_newBlocks) > 0:
+				#		blockInstance = _newBlocks.pop_back()
+				#	_mutex.unlock()
 					
 				var blockInfo = BlockClass.new()
 				blockInfo.x = _data[_blockIndex * 6 + 0]
