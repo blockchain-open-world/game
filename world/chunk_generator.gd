@@ -18,7 +18,7 @@ var _newBlocks = []
 func _ready():
 	_mutex = Mutex.new()
 	_thread = Thread.new()
-	_thread.start(_thread_function)
+	#_thread.start(_thread_function)
 
 func _thread_function():
 	for j in range(100):
