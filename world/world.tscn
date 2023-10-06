@@ -22,8 +22,18 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 8, 8)
 collision_mask = 15
 
 [node name="info" type="Label" parent="."]
-offset_right = 59.0
-offset_bottom = 26.0
+offset_left = 2.0
+offset_top = 3.0
+offset_right = 61.0
+offset_bottom = 29.0
+text = "Banana"
+label_settings = SubResource("LabelSettings_ec3ln")
+
+[node name="info2" type="Label" parent="."]
+offset_left = 2.0
+offset_top = 31.0
+offset_right = 61.0
+offset_bottom = 57.0
 text = "Banana"
 label_settings = SubResource("LabelSettings_ec3ln")
 

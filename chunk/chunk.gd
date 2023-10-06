@@ -9,6 +9,7 @@ var mintMessages = []
 func _process(delta):
 	if isExclude:
 		if get_child_count() > 0:
+			Main.blocksCount -= 1
 			get_child(0).queue_free()
 		else:
 			queue_free()
@@ -54,7 +55,7 @@ func receiveBlocksInstance(initialBlocksInstance):
 	for i in range(len(initialBlocksInstance)):
 		var blockInstance = initialBlocksInstance[i]
 		blocks[blockInstance.blockKey] = blockInstance
-		
+		Main.blocksCount += 1
 		_addBlockInstance(blockInstance)
 
 func mintBlock(blockPosition):

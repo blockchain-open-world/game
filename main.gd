@@ -24,6 +24,7 @@ const FACES_TOP:int = 32
 
 var horizon = 2
 var deleteHorizon = 5
+var blocksCount = 0
 
 var chunksList = []
 var chunksMap = {}

@@ -18,6 +18,7 @@ func _ready():
 	_chunkGenerator.start()
 
 func _process(delta):
+	_chunkGenerator.process()
 	Network.process()
 	_checkOnlineChunks()
 	_checkRemoveChunks()
@@ -29,7 +30,8 @@ func _checkOnlineChunks():
 	var position = player.position
 	playerChunkPosition = Main.transformChunkPosition(position)
 	
-	$info.text = "position: %10.3f\t%10.3f\t%10.3f\t\t chunk: %s,%s,%s \t\t load chunks %s" % [position.x, position.y, position.z, playerChunkPosition.x, playerChunkPosition.y, playerChunkPosition.z, len(loadChunks)]
+	$info.text = "position: %10.2f, %10.2f, %10.2f\t\t chunk: %s,%s,%s" % [position.x, position.y, position.z, playerChunkPosition.x, playerChunkPosition.y, playerChunkPosition.z]
+	$info2.text = "fps:%s \t\t load chunks %s \t\t blocks: %s" % [Engine.get_frames_per_second(), len(loadChunks), Main.blocksCount]
 	
 	for x in range(playerChunkPosition.x - Main.horizon, playerChunkPosition.x + Main.horizon + 1):
 		for y in range(playerChunkPosition.y - Main.horizon, playerChunkPosition.y + Main.horizon + 1):
