@@ -1,7 +1,9 @@
 extends Node
 
 const BlockClass = preload("res://block/block_class.gd")
+const Block = preload("res://block/block.gd")
 
+var _newBlocks = []
 var oldChunks = []
 var oldBlocks = []
 var _data = null
@@ -10,9 +12,25 @@ var _instancied := false
 var _blockIndex = 0
 var _blockSize = 0
 
-func _ready():
-	pass
+var _mutex: Mutex
+var _thread: Thread
 
+func _ready():
+	_thread = Thread.new()
+	_mutex = Mutex.new()
+	_thread.start(_thread_function)
+
+func _thread_function():
+	var arr = []
+	for j in range(100):
+		var blockInfo = BlockClass.new()
+		for i in range(1000):
+			var b = Block.instantiate()
+			arr.push_front(b)
+		_mutex.lock()
+		_newBlocks = arr
+		_mutex.unlock()
+	
 func _process(delta):
 	if _data != null:
 		var count = 0
@@ -27,9 +45,18 @@ func _process(delta):
 				blockInfo.c = _data[_blockIndex * 6 + 4]
 				blockInfo.m = _data[_blockIndex * 6 + 5]
 				_blockIndex += 1
-				var blockInstance = null
 				
+				var blockInstance = null
 				if len(oldBlocks) > 0:
+					blockInstance = oldBlocks.pop_back()
+					
+				if blockInstance == null:
+					_mutex.lock()
+					if len(_newBlocks) > 0:
+						blockInstance = _newBlocks.pop_back()
+					_mutex.unlock()
+				
+				if blockInstance == null && len(oldBlocks) > 0:
 					blockInstance = oldBlocks.pop_back()
 				blockInstance = Main.instanceBlock(blockInfo, blockInstance);
 					
@@ -56,4 +83,5 @@ func getChunk():
 	return arr
 
 func _exit_tree():
+	_thread.wait_to_finish()
 	pass
