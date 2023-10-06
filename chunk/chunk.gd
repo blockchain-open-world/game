@@ -62,6 +62,7 @@ func _onMintBlock(data):
 			Main.instanceBlock(blockInfo, oldBlock);
 		else:
 			var blockInstance = Main.instanceBlock(blockInfo, null);
+			Main.instanceBlockCollider(blockInstance)
 			chunk.blocks[newBlockKey] = blockInstance
 			chunk.addBlock(blockInstance)
 	removeBlock(block)

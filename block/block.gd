@@ -9,8 +9,10 @@ var chunk = null
 
 func disable():
 	visible = false
-	$StaticBody3D/CollisionShape3D.disabled = true
+	get_node("StaticBody3D/CollisionShape3D").disabled = true
+	#$StaticBody3D/CollisionShape3D.disabled = true
 
 func enable():
 	visible = true
-	$StaticBody3D/CollisionShape3D.disabled = false
+	get_node("StaticBody3D/CollisionShape3D").disabled = false
+	#$StaticBody3D/CollisionShape3D.disabled = false

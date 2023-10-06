@@ -119,6 +119,19 @@ func instanceBlock(blockInfo, blockInstance):
 	#blockInstance.position = transformChunkLocalPosition(blockInstance.globalPosition)
 	return blockInstance;
 
+func instanceBlockCollider(blockInstance):
+	var staticBody = StaticBody3D.new()
+	var collisor = CollisionShape3D.new()
+	staticBody.name = "StaticBody3D"
+	collisor.name = "CollisionShape3D"
+	collisor.shape = BoxShape3D.new()
+	staticBody.collision_layer = 0x02;
+	staticBody.collision_mask = 0;
+	staticBody.position = Vector3(0.5,0.5,0.5)
+	
+	staticBody.add_child(collisor)
+	blockInstance.add_child(staticBody)
+
 func _getMaterialBlock(type):
 	if not blockMaterial.has(type):
 		if type == 1:

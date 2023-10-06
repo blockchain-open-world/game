@@ -10,30 +10,43 @@ var _instancied := false
 var _blockIndex = 0
 var _blockSize = 0
 
+var _semaphore: Semaphore
 var _mutex: Mutex
 var _thread: Thread
 var _exit_thread = false
 var _newBlocks = []
 
 func _ready():
+	_semaphore = Semaphore.new()
 	_mutex = Mutex.new()
 	_thread = Thread.new()
-	#_thread.start(_thread_function)
+	_thread.start(_thread_function)
 
 func _thread_function():
-	for j in range(100):
-		var arr = []
-		for i in range(300):
-			var b = Block.instantiate()
-			arr.push_front(b)
-			
+	while true:
+		print("_thread_function")
+		_semaphore.wait()
+
+		var newBlocksLen = 0
+		var exit_thread = false
+		
 		_mutex.lock()
-		_newBlocks.append_array(arr)
-		if _exit_thread:
-			_mutex.unlock()
-			return;
+		exit_thread = _exit_thread
+		newBlocksLen = len(_newBlocks)
 		_mutex.unlock()
-	print("all blocks done")
+		
+		if exit_thread:
+			return;
+		
+		if newBlocksLen < 500:
+			var arr = []
+			for i in range(200):
+				var b = Block.instantiate()
+				arr.push_front(b)
+			
+			_mutex.lock()
+			_newBlocks.append_array(arr)
+			_mutex.unlock()
 	
 func _process(delta):
 	if _data != null:
@@ -45,11 +58,17 @@ func _process(delta):
 				if len(oldBlocks) > 0:
 					blockInstance = oldBlocks.pop_back()
 					
-				#if blockInstance == null:
-				#	_mutex.lock()
-				#	if len(_newBlocks) > 0:
-				#		blockInstance = _newBlocks.pop_back()
-				#	_mutex.unlock()
+				if blockInstance == null:
+					_mutex.lock()
+					if len(_newBlocks) > 0:
+						blockInstance = _newBlocks.pop_back()
+						Main.instanceBlockCollider(blockInstance)
+					if len(_newBlocks) < 500:
+						_semaphore.post()
+					_mutex.unlock()
+				
+				if blockInstance == null:
+					return
 					
 				var blockInfo = BlockClass.new()
 				blockInfo.x = _data[_blockIndex * 6 + 0]
@@ -88,5 +107,5 @@ func _exit_tree():
 	_mutex.lock()
 	_exit_thread = true
 	_mutex.unlock()
+	_semaphore.post()
 	_thread.wait_to_finish()
-	pass
