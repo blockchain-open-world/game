@@ -125,5 +125,4 @@ func _handAction():
 	blockSelection.visible = true
 	blockSelection.position = Vector3(block.globalPosition)
 	if Input.is_action_just_pressed("mouse_click"):
-		var chunk = block.get_parent()
-		chunk.mintBlock(block.globalPosition)
+		block.chunk.mintBlock(block.globalPosition)

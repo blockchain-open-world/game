@@ -5,6 +5,7 @@ var globalPosition = Vector3i.ZERO
 var type = 0
 var faces: int
 var isNew = true
+var chunk = null
 
 func disable():
 	visible = false

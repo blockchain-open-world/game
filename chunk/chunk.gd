@@ -18,6 +18,7 @@ func addBlock(block):
 	blocks[block.blockKey] = block
 	Main.blocksCount += 1
 	block.enable()
+	block.chunk = self
 	if block.isNew:
 		get_parent().add_child(block)
 		block.isNew = false
@@ -27,7 +28,6 @@ func removeBlock(block):
 	Main.blocksCount -= 1
 	block.disable()
 	ChunkGenerator.oldBlocks.push_front(block)
-
 
 func receiveBlocksInstance(initialBlocksInstance):
 	$StaticBody3D/CollisionShape3D.disabled = true
