@@ -1,9 +1,8 @@
 extends Node
 
 const BlockClass = preload("res://block/block_class.gd")
-const Block = preload("res://block/block.gd")
+const Block = preload("res://block/block.tscn")
 
-var _newBlocks = []
 var oldChunks = []
 var oldBlocks = []
 var _data = null
@@ -14,22 +13,28 @@ var _blockSize = 0
 
 var _mutex: Mutex
 var _thread: Thread
+var _exit_thread = false
+var _newBlocks = []
 
 func _ready():
-	_thread = Thread.new()
 	_mutex = Mutex.new()
+	_thread = Thread.new()
 	_thread.start(_thread_function)
 
 func _thread_function():
-	var arr = []
 	for j in range(100):
-		var blockInfo = BlockClass.new()
+		var arr = []
 		for i in range(1000):
 			var b = Block.instantiate()
 			arr.push_front(b)
+			
 		_mutex.lock()
-		_newBlocks = arr
+		_newBlocks.append_array(arr)
+		if _exit_thread:
+			_mutex.unlock()
+			return;
 		_mutex.unlock()
+	print("all blocks done")
 	
 func _process(delta):
 	if _data != null:
@@ -37,15 +42,6 @@ func _process(delta):
 		while count < 256:
 			count+=1;
 			if _blockIndex < _blockSize:
-				var blockInfo = BlockClass.new()
-				blockInfo.x = _data[_blockIndex * 6 + 0]
-				blockInfo.y = _data[_blockIndex * 6 + 1]
-				blockInfo.z = _data[_blockIndex * 6 + 2]
-				blockInfo.t = _data[_blockIndex * 6 + 3]
-				blockInfo.c = _data[_blockIndex * 6 + 4]
-				blockInfo.m = _data[_blockIndex * 6 + 5]
-				_blockIndex += 1
-				
 				var blockInstance = null
 				if len(oldBlocks) > 0:
 					blockInstance = oldBlocks.pop_back()
@@ -56,8 +52,18 @@ func _process(delta):
 						blockInstance = _newBlocks.pop_back()
 					_mutex.unlock()
 				
-				if blockInstance == null && len(oldBlocks) > 0:
-					blockInstance = oldBlocks.pop_back()
+				if blockInstance == null:
+					return;
+					
+				var blockInfo = BlockClass.new()
+				blockInfo.x = _data[_blockIndex * 6 + 0]
+				blockInfo.y = _data[_blockIndex * 6 + 1]
+				blockInfo.z = _data[_blockIndex * 6 + 2]
+				blockInfo.t = _data[_blockIndex * 6 + 3]
+				blockInfo.c = _data[_blockIndex * 6 + 4]
+				blockInfo.m = _data[_blockIndex * 6 + 5]
+				_blockIndex += 1
+				
 				blockInstance = Main.instanceBlock(blockInfo, blockInstance);
 					
 				if(blockInstance == null):
@@ -83,5 +89,8 @@ func getChunk():
 	return arr
 
 func _exit_tree():
+	_mutex.lock()
+	_exit_thread = true
+	_mutex.unlock()
 	_thread.wait_to_finish()
 	pass
