@@ -3,7 +3,6 @@ extends Node
 const BlockClass = preload("res://block/block_class.gd")
 const Block = preload("res://block/block.tscn")
 
-var oldChunks = []
 var oldBlocks = []
 var _data = null
 var _initialBlocksInstance = []
@@ -51,9 +50,6 @@ func _process(delta):
 					if len(_newBlocks) > 0:
 						blockInstance = _newBlocks.pop_back()
 					_mutex.unlock()
-				
-				if blockInstance == null:
-					return;
 					
 				var blockInfo = BlockClass.new()
 				blockInfo.x = _data[_blockIndex * 6 + 0]

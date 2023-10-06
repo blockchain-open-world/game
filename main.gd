@@ -31,10 +31,11 @@ const BLOCK_FACES = {
 	0: FACES_TOP,
 }
 
-var horizon = 2
-var deleteHorizon = 5
+var horizon = 1
+var deleteHorizon = 3
 var blocksCount = 0
 
+var oldChunks = []
 var chunksList = []
 var chunksMap = {}
 
@@ -43,7 +44,11 @@ func formatKey(x, y, z):
 	
 func instanceChunk(chunkX, chunkY, chunkZ):
 	var chunkKey = formatKey(chunkX, chunkY, chunkZ)
-	var chunk = Chunk.instantiate()
+	var chunk = null
+	if len(oldChunks) > 0:
+		chunk = oldChunks.pop_back()
+	if chunk == null:
+		chunk = Chunk.instantiate()
 	chunk.chunkPosition = Vector3i(chunkX, chunkY, chunkZ)
 	chunk.position = Vector3(CHUNK_SIZE * chunkX, CHUNK_SIZE * chunkY, CHUNK_SIZE * chunkZ)
 	chunk.chunkKey = chunkKey
@@ -57,6 +62,7 @@ func removeChunk(chunkKey):
 		chunksMap.erase(chunkKey)
 		chunksList = chunksList.filter(func (key): return key != chunkKey)
 		chunk.exclude()
+		oldChunks.push_front(chunk)
 
 func transformChunkPosition(position):
 	var chunkPosition = Vector3i(

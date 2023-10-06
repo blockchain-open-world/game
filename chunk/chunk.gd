@@ -45,10 +45,11 @@ func _onMintBlock(data):
 		var chunk = Main.getChunkByBlockPosition(blockInfo)
 		if chunk.blocks.has(newBlockKey):
 			var oldBlock = chunk.blocks[newBlockKey]
-			oldBlock.queue_free()
-		var blockInstance = Main.instanceBlock(blockInfo, null);
-		chunk.blocks[newBlockKey] = blockInstance
-		chunk.add_child(blockInstance)
+			Main.instanceBlock(blockInfo, oldBlock);
+		else:
+			var blockInstance = Main.instanceBlock(blockInfo, null);
+			chunk.blocks[newBlockKey] = blockInstance
+			chunk.add_child(blockInstance)
 		
 	remove_child(block)
 	ChunkGenerator.oldBlocks.push_front(block)
@@ -59,4 +60,8 @@ func exclude():
 		remove_child(block)
 		ChunkGenerator.oldBlocks.push_front(block)
 	blocks = {}
-	queue_free()
+	chunkPosition = Vector3i.ZERO
+	chunkKey = ""
+	mintMessages = []
+	$StaticBody3D/CollisionShape3D.disabled = false
+	$MeshInstance3D.visible = true
