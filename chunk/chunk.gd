@@ -4,6 +4,7 @@ var chunkPosition = Vector3i.ZERO
 var chunkKey = ""
 var blocks = {}
 var mintMessages = []
+var isNew = true
 
 func _process(delta):
 	for i in range(len(mintMessages)):

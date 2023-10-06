@@ -35,7 +35,9 @@ func _checkOnlineChunks():
 				var chunkKey = Main.formatKey(x, y, z)
 				if not Main.chunksMap.has(chunkKey):
 					var chunk = Main.instanceChunk(x, y, z)
-					add_child(chunk)
+					if chunk.isNew:
+						add_child(chunk)
+						chunk.isNew = false
 					loadChunks.push_front(chunkKey)
 					
 	if not player.start && countLoadChunks > 9:
