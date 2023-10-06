@@ -46,7 +46,7 @@ func removeChunk(chunkKey):
 		var chunk = chunksMap[chunkKey]
 		chunksMap.erase(chunkKey)
 		chunksList = chunksList.filter(func (key): return key != chunkKey)
-		chunk.queue_free()
+		chunk.exclude()
 
 func transformChunkPosition(position):
 	var chunkPosition = Vector3i(

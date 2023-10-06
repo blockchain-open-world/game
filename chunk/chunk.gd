@@ -2,11 +2,17 @@ extends Node3D
 
 var chunkPosition = Vector3i.ZERO
 var chunkKey = ""
-
+var isExclude = false
 var blocks = {}
 var mintMessages = []
 
 func _process(delta):
+	if isExclude:
+		if get_child_count() > 0:
+			get_child(0).free()
+		else:
+			free()
+		return;
 	for i in range(len(mintMessages)):
 		var msg = mintMessages[i]
 		if msg.received:
@@ -16,6 +22,8 @@ func _process(delta):
 			return;
 
 func _addBlockInstance(blockInstance):
+	if isExclude:
+		return;
 	if blockInstance.faces & Main.FACES_RIGHT:
 		blockInstance.get_child(5).visible = false
 	if blockInstance.faces & Main.FACES_LEFT:
@@ -76,3 +84,6 @@ func _onMintBlock(data):
 		chunk.blocks[newBlockKey] = blockInstance
 		chunk._addBlockInstance(blockInstance)
 	block.queue_free()
+
+func exclude():
+	isExclude = true
