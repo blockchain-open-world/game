@@ -1,39 +1,50 @@
-class_name ChunkGenerator
+extends Node
 
 const BlockClass = preload("res://block/block_class.gd")
 
+var oldChunks = []
+var oldBlocks = []
 var _data = null
-var _initialBlocksInstance = null
+var _initialBlocksInstance = []
 var _instancied := false
+var _blockIndex = 0
+var _blockSize = 0
 
-func start():
+func _ready():
 	pass
 
-func process():
-	if _data != null && _initialBlocksInstance == null:
-		var blockSize = int(len(_data)/6)
-		_initialBlocksInstance = []
-		for i in range(blockSize):
-			var blockIndex = i * 6
-			var blockInfo = BlockClass.new()
-			blockInfo.x = _data[blockIndex + 0]
-			blockInfo.y = _data[blockIndex + 1]
-			blockInfo.z = _data[blockIndex + 2]
-			blockInfo.t = _data[blockIndex + 3]
-			blockInfo.c = _data[blockIndex + 4]
-			blockInfo.m = _data[blockIndex + 5]
-			
-			var blockInstance = Main.instanceBlock(blockInfo);
-			if(blockInstance == null):
-				print("###### ERROR - %s" % JSON.stringify(blockInfo))
-			_initialBlocksInstance.push_front(blockInstance)
-			
-		_instancied = true
+func _process(delta):
+	if _data != null:
+		var count = 0
+		while count < 256:
+			count+=1;
+			if _blockIndex < _blockSize:
+				var blockInfo = BlockClass.new()
+				blockInfo.x = _data[_blockIndex * 6 + 0]
+				blockInfo.y = _data[_blockIndex * 6 + 1]
+				blockInfo.z = _data[_blockIndex * 6 + 2]
+				blockInfo.t = _data[_blockIndex * 6 + 3]
+				blockInfo.c = _data[_blockIndex * 6 + 4]
+				blockInfo.m = _data[_blockIndex * 6 + 5]
+				_blockIndex += 1
+				var blockInstance = null
+				
+				if len(oldBlocks) > 0:
+					blockInstance = oldBlocks.pop_back()
+				blockInstance = Main.instanceBlock(blockInfo, blockInstance);
+					
+				if(blockInstance == null):
+					print("###### ERROR - %s" % JSON.stringify(blockInfo))
+				_initialBlocksInstance.push_front(blockInstance)
+			else:
+				_instancied = true
 
 func instanciateChunk(data):
 	_instancied = false
-	_initialBlocksInstance = null
 	_data = data
+	_blockSize = int(len(_data)/6)
+	_blockIndex = 0
+	_initialBlocksInstance = []
 
 func isInstancied():
 	return _instancied
@@ -44,5 +55,5 @@ func getChunk():
 	_data = null
 	return arr
 
-func exit():
+func _exit_tree():
 	pass

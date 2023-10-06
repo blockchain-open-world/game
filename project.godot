@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 Network="*res://network.gd"
 Main="*res://main.gd"
+ChunkGenerator="*res://world/chunk_generator.gd"
 
 [display]
 

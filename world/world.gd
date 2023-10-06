@@ -1,6 +1,5 @@
 extends Node3D
 
-const ChunkGenerator = preload("res://world/chunk_generator.gd")
 @onready var player = $player
 
 var isLoading = true
@@ -9,16 +8,13 @@ var loadChunks = []
 
 var playerChunkPosition = Vector3i.ZERO
 
-var _chunkGenerator = ChunkGenerator.new()
 var _selectedGenerateChunk = null
 var _chunkMessage = null
 
 func _ready():
 	Network.start(self)
-	_chunkGenerator.start()
 
 func _process(delta):
-	_chunkGenerator.process()
 	Network.process()
 	_checkOnlineChunks()
 	_checkRemoveChunks()
@@ -64,13 +60,13 @@ func _loadChunks():
 		# check if has chunkMessage
 		if _chunkMessage != null:
 			if _chunkMessage.received:
-				_chunkGenerator.instanciateChunk(_chunkMessage.response)
+				ChunkGenerator.instanciateChunk(_chunkMessage.response)
 				Network.clearMessage(_chunkMessage)
 				_chunkMessage = null
 			return;
 		# check if chunk is instancied
-		if _chunkGenerator.isInstancied():
-			_selectedGenerateChunk.receiveBlocksInstance(_chunkGenerator.getChunk())
+		if ChunkGenerator.isInstancied():
+			_selectedGenerateChunk.receiveBlocksInstance(ChunkGenerator.getChunk())
 			loadChunks = loadChunks.filter(func (key): return key != _selectedGenerateChunk.chunkKey)
 			countLoadChunks += 1
 			_selectedGenerateChunk = null
@@ -143,4 +139,3 @@ func loadModel(filename):
 
 func _exit_tree():
 	Network.stop()
-	_chunkGenerator.exit()

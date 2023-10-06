@@ -22,6 +22,15 @@ const FACES_FRONT:int = 8
 const FACES_BOTTOM:int = 16
 const FACES_TOP:int = 32
 
+const BLOCK_FACES = {
+	5: FACES_RIGHT,
+	4: FACES_LEFT,
+	3: FACES_BACK,
+	2: FACES_FRONT,
+	1: FACES_BOTTOM,
+	0: FACES_TOP,
+}
+
 var horizon = 2
 var deleteHorizon = 5
 var blocksCount = 0
@@ -76,38 +85,29 @@ func getChunkByBlockPosition(position):
 	var chunkKey = formatKey(chunkPosition.x, chunkPosition.y, chunkPosition.z)
 	return chunksMap[chunkKey]
 	
-func instanceBlock(blockInfo):
+func instanceBlock(blockInfo, blockInstance):
 	var blockKey = formatKey(blockInfo.x, blockInfo.y, blockInfo.z)
 	
-	var blockInstance = Block.instantiate()
+	if blockInstance == null:
+		blockInstance = Block.instantiate()
 	
 	var faces: int = int(blockInfo.m)
 	blockInstance.faces = faces
 	
 	var material = _getMaterialBlock(blockInfo.t)
-	if not (faces & FACES_RIGHT):
-		var face = blockInstance.get_child(5)
-		face.material_override = material[face.name]
-	if not (faces & FACES_LEFT):
-		var face = blockInstance.get_child(4)
-		face.material_override = material[face.name]
-	if not (faces & FACES_BACK):
-		var face = blockInstance.get_child(3)
-		face.material_override = material[face.name]
-	if not (faces & FACES_FRONT):
-		var face = blockInstance.get_child(2)
-		face.material_override = material[face.name]
-	if not (faces & FACES_BOTTOM):
-		var face = blockInstance.get_child(1)
-		face.material_override = material[face.name]
-	if not (faces & FACES_TOP):
-		var face = blockInstance.get_child(0)
-		face.material_override = material[face.name]
-	
-	blockInstance.globalPosition = Vector3i(blockInfo.x, blockInfo.y, blockInfo.z)
+	for childIndex in BLOCK_FACES:
+		var faceMask = BLOCK_FACES[childIndex]
+		var face = blockInstance.get_child(childIndex)
+		if blockInstance.faces & faceMask:
+			face.visible = false
+		else:
+			face.material_override = material[face.name]
+			face.visible = true
+			
 	blockInstance.blockKey = blockKey
 	blockInstance.type = blockInfo.t
 	
+	blockInstance.globalPosition = Vector3i(blockInfo.x, blockInfo.y, blockInfo.z)
 	blockInstance.position = transformChunkLocalPosition(blockInstance.globalPosition)
 	return blockInstance;
 

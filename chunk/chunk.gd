@@ -2,18 +2,10 @@ extends Node3D
 
 var chunkPosition = Vector3i.ZERO
 var chunkKey = ""
-var isExclude = false
 var blocks = {}
 var mintMessages = []
 
 func _process(delta):
-	if isExclude:
-		if get_child_count() > 0:
-			Main.blocksCount -= 1
-			get_child(0).queue_free()
-		else:
-			queue_free()
-		return;
 	for i in range(len(mintMessages)):
 		var msg = mintMessages[i]
 		if msg.received:
@@ -22,33 +14,6 @@ func _process(delta):
 			Network.clearMessage(msg)
 			return;
 
-func _addBlockInstance(blockInstance):
-	if isExclude:
-		return;
-	if blockInstance.faces & Main.FACES_RIGHT:
-		blockInstance.get_child(5).visible = false
-	if blockInstance.faces & Main.FACES_LEFT:
-		blockInstance.get_child(4).visible = false
-	if blockInstance.faces & Main.FACES_BACK:
-		blockInstance.get_child(3).visible = false
-	if blockInstance.faces & Main.FACES_FRONT:
-		blockInstance.get_child(2).visible = false
-	if blockInstance.faces & Main.FACES_BOTTOM:
-		blockInstance.get_child(1).visible = false
-	if blockInstance.faces & Main.FACES_TOP:
-		blockInstance.get_child(0).visible = false
-		
-	var staticBody = StaticBody3D.new()
-	var collisor = CollisionShape3D.new()
-	collisor.shape = BoxShape3D.new()
-	staticBody.collision_layer = 0x02;
-	staticBody.collision_mask = 0;
-	staticBody.add_child(collisor)
-	blockInstance.add_child(staticBody)
-	staticBody.position = Vector3(0.5,0.5,0.5)
-		
-	add_child(blockInstance)
-
 func receiveBlocksInstance(initialBlocksInstance):
 	$StaticBody3D/CollisionShape3D.disabled = true
 	$MeshInstance3D.visible = false
@@ -56,7 +21,7 @@ func receiveBlocksInstance(initialBlocksInstance):
 		var blockInstance = initialBlocksInstance[i]
 		blocks[blockInstance.blockKey] = blockInstance
 		Main.blocksCount += 1
-		_addBlockInstance(blockInstance)
+		add_child(blockInstance)
 
 func mintBlock(blockPosition):
 	var position = {}
@@ -81,10 +46,17 @@ func _onMintBlock(data):
 		if chunk.blocks.has(newBlockKey):
 			var oldBlock = chunk.blocks[newBlockKey]
 			oldBlock.queue_free()
-		var blockInstance = Main.instanceBlock(blockInfo);
+		var blockInstance = Main.instanceBlock(blockInfo, null);
 		chunk.blocks[newBlockKey] = blockInstance
-		chunk._addBlockInstance(blockInstance)
-	block.queue_free()
+		chunk.add_child(blockInstance)
+		
+	remove_child(block)
+	ChunkGenerator.oldBlocks.push_front(block)
 
 func exclude():
-	isExclude = true
+	for k in blocks:
+		var block = blocks[k]
+		remove_child(block)
+		ChunkGenerator.oldBlocks.push_front(block)
+	blocks = {}
+	queue_free()
