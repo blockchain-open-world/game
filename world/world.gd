@@ -65,13 +65,13 @@ func _loadChunks():
 				ChunkGenerator.instanciateChunk(_chunkMessage.response)
 				Network.clearMessage(_chunkMessage)
 				_chunkMessage = null
-			return;
-		# check if chunk is instancied
-		if ChunkGenerator.isInstancied():
+		elif _selectedGenerateChunk.isStarted:
+			if _selectedGenerateChunk.isLoaded:
+				loadChunks = loadChunks.filter(func (key): return key != _selectedGenerateChunk.chunkKey)
+				countLoadChunks += 1
+				_selectedGenerateChunk = null
+		elif ChunkGenerator.isInstancied():
 			_selectedGenerateChunk.receiveBlocksInstance(ChunkGenerator.getChunk())
-			loadChunks = loadChunks.filter(func (key): return key != _selectedGenerateChunk.chunkKey)
-			countLoadChunks += 1
-			_selectedGenerateChunk = null
 		return;
 		
 	if len(loadChunks) > 0:

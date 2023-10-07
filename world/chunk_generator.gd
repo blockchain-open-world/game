@@ -24,7 +24,6 @@ func _ready():
 
 func _thread_function():
 	while true:
-		print("_thread_function")
 		_semaphore.wait()
 
 		var newBlocksLen = 0

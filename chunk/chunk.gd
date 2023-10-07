@@ -5,8 +5,26 @@ var chunkKey = ""
 var blocks = {}
 var mintMessages = []
 var isNew = true
+var isLoaded = false
+var isStarted = false
+
+var _initialBlocksInstance = []
 
 func _process(delta):
+	
+	if len(_initialBlocksInstance) > 0:
+		var count = 0
+		while count < 100:
+			count += 1
+			if len(_initialBlocksInstance) > 0:
+				var blockInstance = _initialBlocksInstance.pop_front()
+				blocks[blockInstance.blockKey] = blockInstance
+				addBlock(blockInstance)
+		if len(_initialBlocksInstance) == 0:
+			$StaticBody3D/CollisionShape3D.disabled = true
+			$MeshInstance3D.visible = false
+			isLoaded = true
+		
 	for i in range(len(mintMessages)):
 		var msg = mintMessages[i]
 		if msg.received:
@@ -31,12 +49,9 @@ func removeBlock(block):
 	ChunkGenerator.oldBlocks.push_front(block)
 
 func receiveBlocksInstance(initialBlocksInstance):
-	$StaticBody3D/CollisionShape3D.disabled = true
-	$MeshInstance3D.visible = false
-	for i in range(len(initialBlocksInstance)):
-		var blockInstance = initialBlocksInstance[i]
-		blocks[blockInstance.blockKey] = blockInstance
-		addBlock(blockInstance)
+	isLoaded = false
+	isStarted = true
+	_initialBlocksInstance = initialBlocksInstance
 
 func mintBlock(blockPosition):
 	var position = {}
@@ -75,6 +90,8 @@ func enable():
 	chunkPosition = Vector3i.ZERO
 	chunkKey = ""
 	mintMessages = []
+	isLoaded = false
+	isStarted = false
 	$StaticBody3D/CollisionShape3D.disabled = false
 	$MeshInstance3D.visible = true
 
