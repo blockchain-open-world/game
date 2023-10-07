@@ -1,5 +1,6 @@
 extends Node
 
+"""
 const BlockClass = preload("res://block/block_class.gd")
 const Block = preload("res://block/block.tscn")
 
@@ -108,3 +109,5 @@ func _exit_tree():
 	_mutex.unlock()
 	_semaphore.post()
 	_thread.wait_to_finish()
+asdfasdf
+"""

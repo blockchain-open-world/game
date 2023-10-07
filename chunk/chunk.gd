@@ -1,59 +1,73 @@
 extends Node3D
 
+
 class_name Chunk
 
+const LOAD_PACK = 100
+
 const STATE_NEW = 0
+const STATE_WAIT_DATA = 1
+const STATE_LOAD = 2
+const STATE_ENABLED = 3
+const STATE_UNLOAD = 4
+const STATE_DISABLED = 5
 var state = STATE_NEW
 
 var chunkPosition = Vector3i.ZERO
 var chunkKey = ""
 var blocks = {}
-var mintMessages = []
-
-var _initialBlocksInstance = []
+var _mintMessages = []
+var _blockInfoArray = []
+var _world:Node3D
+var _chunkMessage = null
 
 func _process(delta):
-	
-	if len(_initialBlocksInstance) > 0:
+	if state == STATE_LOAD:
 		var count = 0
 		while count < 100:
 			count += 1
-			if len(_initialBlocksInstance) > 0:
-				var blockInstance = _initialBlocksInstance.pop_front()
-				blocks[blockInstance.blockKey] = blockInstance
-				addBlock(blockInstance)
-		if len(_initialBlocksInstance) == 0:
+			if len(_blockInfoArray) > 0:
+				var blockInfo = BlockClass.new()
+				blockInfo.x = _blockInfoArray.pop_front()
+				blockInfo.y = _blockInfoArray.pop_front()
+				blockInfo.z = _blockInfoArray.pop_front()
+				blockInfo.t = _blockInfoArray.pop_front()
+				blockInfo.c = _blockInfoArray.pop_front()
+				blockInfo.m = _blockInfoArray.pop_front()
+				Main.instanceBlock(blockInfo, self)
+				
+		if len(_blockInfoArray) == 0:
+			state = STATE_ENABLED
 			$StaticBody3D/CollisionShape3D.disabled = true
 			$MeshInstance3D.visible = false
-			isLoaded = true
-		
-	for i in range(len(mintMessages)):
-		var msg = mintMessages[i]
-		if msg.received:
-			_onMintBlock(msg.response)
-			mintMessages = mintMessages.filter(func (m): return m.id != msg.id)
-			Network.clearMessage(msg)
-			return;
+	elif state == STATE_ENABLED:
+		for i in range(len(_mintMessages)):
+			var msg = _mintMessages[i]
+			if msg.received:
+				_onMintBlock(msg.response)
+				_mintMessages = _mintMessages.filter(func (m): return m.id != msg.id)
+				Network.clearMessage(msg)
+				return;
+	elif state == STATE_UNLOAD:
+		var count = 0
+		for k in blocks:
+			count += 1
+			var block = blocks[k]
+			Main.removeBlock(block.blockKey)
+			if count >= LOAD_PACK:
+				return
+		state = STATE_DISABLED
+		Main.oldChunks.push_back(self)
+	elif state == STATE_WAIT_DATA:
+		if _chunkMessage != null:
+			if _chunkMessage.received:
+				_setBlockInfoArray(_chunkMessage.response)
+				Network.clearMessage(_chunkMessage)
+				_chunkMessage = null
 
-func addBlock(block):
-	blocks[block.blockKey] = block
-	Main.blocksCount += 1
-	block.enable()
-	block.chunk = self
-	if block.isNew:
-		get_parent().add_child(block)
-		block.isNew = false
-
-func removeBlock(block):
-	blocks.erase(block)
-	Main.blocksCount -= 1
-	block.disable()
-	ChunkGenerator.oldBlocks.push_front(block)
-
-func receiveBlocksInstance(initialBlocksInstance):
-	isLoaded = false
-	isStarted = true
-	_initialBlocksInstance = initialBlocksInstance
+func _setBlockInfoArray(blockInfoArray):
+	state = STATE_LOAD
+	_blockInfoArray = blockInfoArray
 
 func mintBlock(blockPosition):
 	var position = {}
@@ -61,14 +75,14 @@ func mintBlock(blockPosition):
 	position.y = blockPosition.y
 	position.z = blockPosition.z
 	var msg = Network.send("mint_block", position)
-	mintMessages.push_back(msg)
+	_mintMessages.push_back(msg)
 
 func _onMintBlock(data):
 	if not data.success:
 		return
 	
 	var blockKey = Main.formatKey(data.minedBlock.x, data.minedBlock.y, data.minedBlock.z)
-	var block = blocks[blockKey]
+	var block:Block = blocks[blockKey]
 	
 	for i in range(len(data.blocks)):
 		var blockInfo = data.blocks[i]
@@ -76,34 +90,28 @@ func _onMintBlock(data):
 		var chunk = Main.getChunkByBlockPosition(blockInfo)
 		if chunk.blocks.has(newBlockKey):
 			var oldBlock = chunk.blocks[newBlockKey]
-			Main.instanceBlock(blockInfo, oldBlock);
-		else:
-			var blockInstance = Main.instanceBlock(blockInfo, null);
-			Main.instanceBlockCollider(blockInstance)
-			chunk.blocks[newBlockKey] = blockInstance
-			chunk.addBlock(blockInstance)
-	removeBlock(block)
+			Main.removeBlock(blockKey)
+		Main.instanceBlock(blockInfo, self)
+	Main.removeBlock(blockKey)
 
-func enable():
-	for k in blocks:
-		var block = blocks[k]
-		removeBlock(block)
+func startLoad():
+	var position = {}
+	position.x = chunkPosition.x
+	position.y = chunkPosition.y
+	position.z = chunkPosition.z
+	_chunkMessage = Network.send("chunk", position)
+
+func enable(world: Node3D):
+	if state == STATE_NEW:
+		world.add_child(self)
+	state = STATE_WAIT_DATA
+	
+	_world = world
 	blocks = {}
-	chunkPosition = Vector3i.ZERO
-	chunkKey = ""
-	mintMessages = []
-	isLoaded = false
-	isStarted = false
+	_mintMessages = []
+	_blockInfoArray = []
 	$StaticBody3D/CollisionShape3D.disabled = false
 	$MeshInstance3D.visible = true
 
 func disable():
-	for k in blocks:
-		var block = blocks[k]
-		removeBlock(block)
-	blocks = {}
-	chunkPosition = Vector3i.ZERO
-	chunkKey = ""
-	mintMessages = []
-	$StaticBody3D/CollisionShape3D.disabled = true
-	$MeshInstance3D.visible = false
+	state = STATE_UNLOAD

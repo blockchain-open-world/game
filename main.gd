@@ -36,6 +36,7 @@ var blocksCount = 0
 var oldChunks = []
 var oldBlocks = []
 var chunks = {}
+var chunksList = []
 var blocks = {}
 
 var _semaphore: Semaphore
@@ -46,81 +47,50 @@ var _newBlocks = []
 var _newChunks = []
 
 func _ready():
-	_semaphore = Semaphore.new()
-	_mutex = Mutex.new()
-	_thread = Thread.new()
-	_thread.start(_thread_function)
+	pass
+#	_semaphore = Semaphore.new()
+#	_mutex = Mutex.new()
+#	_thread = Thread.new()
+	#_thread.start(_thread_function)
 
-func _thread_function():
-	while true:
-		_semaphore.wait()
-
-		var newBlocksLen = 0
-		var exit_thread = false
-		
-		_mutex.lock()
-		exit_thread = _exit_thread
-		newBlocksLen = len(_newBlocks)
-		_mutex.unlock()
-		
-		if exit_thread:
-			return;
-		
-		if newBlocksLen < 500:
-			var arr = []
-			for i in range(200):
-				var b = Block.instantiate()
-				arr.push_front(b)
-			
-			_mutex.lock()
-			_newBlocks.append_array(arr)
-			_mutex.unlock()
-
-func _process(delta):
-	if _data != null:
-		var count = 0
-		while count < 256:
-			count+=1;
-			if _blockIndex < _blockSize:
-				var blockInstance = null
-				if len(oldBlocks) > 0:
-					blockInstance = oldBlocks.pop_back()
-					
-				if blockInstance == null:
-					_mutex.lock()
-					if len(_newBlocks) > 0:
-						blockInstance = _newBlocks.pop_back()
-						Main.instanceBlockCollider(blockInstance)
-					if len(_newBlocks) < 500:
-						_semaphore.post()
-					_mutex.unlock()
-				
-				if blockInstance == null:
-					return
-					
-				var blockInfo = BlockClass.new()
-				blockInfo.x = _data[_blockIndex * 6 + 0]
-				blockInfo.y = _data[_blockIndex * 6 + 1]
-				blockInfo.z = _data[_blockIndex * 6 + 2]
-				blockInfo.t = _data[_blockIndex * 6 + 3]
-				blockInfo.c = _data[_blockIndex * 6 + 4]
-				blockInfo.m = _data[_blockIndex * 6 + 5]
-				_blockIndex += 1
-				
-				blockInstance = Main.instanceBlock(blockInfo, blockInstance);
-					
-				if(blockInstance == null):
-					print("###### ERROR - %s" % JSON.stringify(blockInfo))
-				_initialBlocksInstance.push_front(blockInstance)
-			else:
-				_instancied = true
-
+#func _thread_function():
+#	while true:
+#		_semaphore.wait()
+#
+#		var newBlocksLen = 0
+#		var exit_thread = false
+#		
+#		_mutex.lock()
+#		exit_thread = _exit_thread
+#		newBlocksLen = len(_newBlocks)
+#		_mutex.unlock()
+#		
+#		if exit_thread:
+#			return;
+#		
+#		if newBlocksLen < 500:
+#			var arr = []
+#			for i in range(200):
+#				var b = Block.instantiate()
+#				arr.push_front(b)
+#			
+#			_mutex.lock()
+#			_newBlocks.append_array(arr)
+#			_mutex.unlock()
+#
+#func _process(delta):
+#	if len(_newBlocks) < 500:
+#		_newBlocks.push_back(_newBlock())
+#	if len(_newChunks) < 50:
+#		_newChunks.push_back(_newChunk())
+	
 func _exit_tree():
-	_mutex.lock()
-	_exit_thread = true
-	_mutex.unlock()
-	_semaphore.post()
-	_thread.wait_to_finish()
+	pass
+	#_mutex.lock()
+	#_exit_thread = true
+	#_mutex.unlock()
+	#_semaphore.post()
+	#_thread.wait_to_finish()
 
 func _newBlock():
 	return Block.instantiate()
@@ -152,50 +122,51 @@ func _configureBlock(blockInfo: BlockClass, block: Block, chunk: Chunk):
 	blocks[blockKey] = block
 	chunk.blocks[blockKey] = block
 	block.chunk = chunk
-	block.enable()
+	block.enable(chunk._world)
 	return block;
 
-func _configureChunk(position: Vector3i, chunk: Chunk):
+func _configureChunk(position: Vector3i, chunk: Chunk, world: Node3D):
 	var chunkKey = formatKey(position.x, position.y, position.z)
-	chunk.enable()
 	chunk.chunkPosition = position
 	chunk.position = Vector3(CHUNK_SIZE * position.x, CHUNK_SIZE * position.y, CHUNK_SIZE * position.z)
 	chunk.chunkKey = chunkKey
-	chunk[chunkKey] = chunk
-	chunk.enable()
+	chunks[chunkKey] = chunk
+	chunksList.push_back(chunk)
+	chunk.enable(world)
 	return chunk
 
-func _removeBlock(blockKey):
+func removeBlock(blockKey):
+	var block:Block = blocks[blockKey]
+	blocks.erase(blockKey)
+	block.chunk.blocks.erase(blockKey)
+	block.disable()
+	oldBlocks.push_back(block)
+
+func removeChunk(chunk: Chunk):
+	chunks.erase(chunk.chunkKey)
+	chunksList = chunksList.filter(func (key): return key != chunk.chunkKey)
+	chunk.disable()
+
+func instanceChunk(world, x, y, z):
+	var chunkPosition = Vector3i(x, y, z)
 	
+	#if len(_newChunks) == 0:
+	#	return
+	
+	var chunk = _newChunk()
+	_configureChunk(chunkPosition, chunk, world)
+	print("instanceChunk %s" % chunk.chunkKey)
+	return chunk
 
-
-
+func instanceBlock(blockInfo: BlockClass, chunk: Chunk):
+	#if len(_newBlocks) == 0:
+	#	return
+	var block = _newBlock()
+	_configureBlock(blockInfo, block, chunk)
+	#print("instanceBlock %s" % block.blockKey)
 
 func formatKey(x, y, z):
 	return ("i_%s_%s_%s" % [x, y, z]).replace("-", "n")
-	
-func instanceChunk(chunkX, chunkY, chunkZ):
-	var chunkKey = formatKey(chunkX, chunkY, chunkZ)
-	var chunk = null
-	if len(oldChunks) > 0:
-		chunk = oldChunks.pop_back()
-	if chunk == null:
-		chunk = Chunk.instantiate()
-	chunk.enable()
-	chunk.chunkPosition = Vector3i(chunkX, chunkY, chunkZ)
-	chunk.position = Vector3(CHUNK_SIZE * chunkX, CHUNK_SIZE * chunkY, CHUNK_SIZE * chunkZ)
-	chunk.chunkKey = chunkKey
-	chunksMap[chunkKey] = chunk
-	chunksList.push_back(chunkKey)
-	return chunk
-
-func removeChunk(chunkKey):
-	if chunksMap.has(chunkKey):
-		var chunk = chunksMap[chunkKey]
-		chunksMap.erase(chunkKey)
-		chunksList = chunksList.filter(func (key): return key != chunkKey)
-		chunk.disable()
-		oldChunks.push_front(chunk)
 
 func transformChunkPosition(position):
 	var chunkPosition = Vector3i(
@@ -222,47 +193,7 @@ func transformChunkLocalPosition(position):
 func getChunkByBlockPosition(position):
 	var chunkPosition = transformChunkPosition(position)
 	var chunkKey = formatKey(chunkPosition.x, chunkPosition.y, chunkPosition.z)
-	return chunksMap[chunkKey]
-	
-func instanceBlock(blockInfo, blockInstance):
-	var blockKey = formatKey(blockInfo.x, blockInfo.y, blockInfo.z)
-	
-	if blockInstance == null:
-		blockInstance = Block.instantiate()
-	
-	var faces: int = int(blockInfo.m)
-	blockInstance.faces = faces
-	
-	var material = _getMaterialBlock(blockInfo.t)
-	for childIndex in BLOCK_FACES:
-		var faceMask = BLOCK_FACES[childIndex]
-		var face = blockInstance.get_child(childIndex)
-		if blockInstance.faces & faceMask:
-			face.visible = false
-		else:
-			face.material_override = material[face.name]
-			face.visible = true
-			
-	blockInstance.blockKey = blockKey
-	blockInstance.type = blockInfo.t
-	
-	blockInstance.globalPosition = Vector3i(blockInfo.x, blockInfo.y, blockInfo.z)
-	blockInstance.position = Vector3i(blockInfo.x, blockInfo.y, blockInfo.z)
-	#blockInstance.position = transformChunkLocalPosition(blockInstance.globalPosition)
-	return blockInstance;
-
-func instanceBlockCollider(blockInstance):
-	var staticBody = StaticBody3D.new()
-	var collisor = CollisionShape3D.new()
-	staticBody.name = "StaticBody3D"
-	collisor.name = "CollisionShape3D"
-	collisor.shape = BoxShape3D.new()
-	staticBody.collision_layer = 0x02;
-	staticBody.collision_mask = 0;
-	staticBody.position = Vector3(0.5,0.5,0.5)
-	
-	staticBody.add_child(collisor)
-	blockInstance.add_child(staticBody)
+	return chunks[chunkKey]
 
 func _getMaterialBlock(type):
 	if not blockMaterial.has(type):

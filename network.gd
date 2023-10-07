@@ -80,7 +80,7 @@ func _ready():
 	else:
 		_http_start()
 
-func _process():
+func _process(delta):
 	if _useWebsockets:
 		_socket_process()
 	else:
