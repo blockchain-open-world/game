@@ -1,11 +1,17 @@
 extends Node3D
 
-var blockKey = ""
-var globalPosition = Vector3i.ZERO
-var type = 0
+class_name Block
+
+var Chunk = preload("res://chunk/chunk.tscn")
+
+const STATE_NEW = 0
+var state = STATE_NEW
+
+var blockKey := ""
+var globalPosition := Vector3i.ZERO
+var type: int = 0
 var faces: int
-var isNew = true
-var chunk = null
+var chunk:Chunk = null
 
 func disable():
 	visible = false

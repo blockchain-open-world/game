@@ -1,12 +1,14 @@
 extends Node3D
 
+class_name Chunk
+
+const STATE_NEW = 0
+var state = STATE_NEW
+
 var chunkPosition = Vector3i.ZERO
 var chunkKey = ""
 var blocks = {}
 var mintMessages = []
-var isNew = true
-var isLoaded = false
-var isStarted = false
 
 var _initialBlocksInstance = []
 

@@ -2,7 +2,7 @@ extends Node
 
 var Chunk = preload("res://chunk/chunk.tscn")
 var Block = preload("res://block/block.tscn")
-const TestBlock = preload("res://block/block.glb")
+var BlockClass = preload("res://block/block_class.gd")
 
 const tile000 = preload("res://chunk/textures/tile000.png")
 const tile031 = preload("res://chunk/textures/tile031.png")
@@ -10,7 +10,6 @@ const tile002 = preload("res://chunk/textures/tile002.png")
 const tile003 = preload("res://chunk/textures/tile003.png")
 const tile016 = preload("res://chunk/textures/tile024.png")
 const tile022 = preload("res://chunk/textures/tile024.png")
-
 var blockMaterial = {};
 
 const CHUNK_SIZE = 16
@@ -21,7 +20,6 @@ const FACES_BACK:int = 4
 const FACES_FRONT:int = 8
 const FACES_BOTTOM:int = 16
 const FACES_TOP:int = 32
-
 const BLOCK_FACES = {
 	5: FACES_RIGHT,
 	4: FACES_LEFT,
@@ -36,8 +34,142 @@ var deleteHorizon = 3
 var blocksCount = 0
 
 var oldChunks = []
-var chunksList = []
-var chunksMap = {}
+var oldBlocks = []
+var chunks = {}
+var blocks = {}
+
+var _semaphore: Semaphore
+var _mutex: Mutex
+var _thread: Thread
+var _exit_thread = false
+var _newBlocks = []
+var _newChunks = []
+
+func _ready():
+	_semaphore = Semaphore.new()
+	_mutex = Mutex.new()
+	_thread = Thread.new()
+	_thread.start(_thread_function)
+
+func _thread_function():
+	while true:
+		_semaphore.wait()
+
+		var newBlocksLen = 0
+		var exit_thread = false
+		
+		_mutex.lock()
+		exit_thread = _exit_thread
+		newBlocksLen = len(_newBlocks)
+		_mutex.unlock()
+		
+		if exit_thread:
+			return;
+		
+		if newBlocksLen < 500:
+			var arr = []
+			for i in range(200):
+				var b = Block.instantiate()
+				arr.push_front(b)
+			
+			_mutex.lock()
+			_newBlocks.append_array(arr)
+			_mutex.unlock()
+
+func _process(delta):
+	if _data != null:
+		var count = 0
+		while count < 256:
+			count+=1;
+			if _blockIndex < _blockSize:
+				var blockInstance = null
+				if len(oldBlocks) > 0:
+					blockInstance = oldBlocks.pop_back()
+					
+				if blockInstance == null:
+					_mutex.lock()
+					if len(_newBlocks) > 0:
+						blockInstance = _newBlocks.pop_back()
+						Main.instanceBlockCollider(blockInstance)
+					if len(_newBlocks) < 500:
+						_semaphore.post()
+					_mutex.unlock()
+				
+				if blockInstance == null:
+					return
+					
+				var blockInfo = BlockClass.new()
+				blockInfo.x = _data[_blockIndex * 6 + 0]
+				blockInfo.y = _data[_blockIndex * 6 + 1]
+				blockInfo.z = _data[_blockIndex * 6 + 2]
+				blockInfo.t = _data[_blockIndex * 6 + 3]
+				blockInfo.c = _data[_blockIndex * 6 + 4]
+				blockInfo.m = _data[_blockIndex * 6 + 5]
+				_blockIndex += 1
+				
+				blockInstance = Main.instanceBlock(blockInfo, blockInstance);
+					
+				if(blockInstance == null):
+					print("###### ERROR - %s" % JSON.stringify(blockInfo))
+				_initialBlocksInstance.push_front(blockInstance)
+			else:
+				_instancied = true
+
+func _exit_tree():
+	_mutex.lock()
+	_exit_thread = true
+	_mutex.unlock()
+	_semaphore.post()
+	_thread.wait_to_finish()
+
+func _newBlock():
+	return Block.instantiate()
+
+func _newChunk():
+	return Chunk.instantiate()
+
+func _configureBlock(blockInfo: BlockClass, block: Block, chunk: Chunk):
+	var blockKey = formatKey(blockInfo.x, blockInfo.y, blockInfo.z)
+	
+	var faces: int = int(blockInfo.m)
+	block.faces = faces
+	
+	var material = _getMaterialBlock(blockInfo.t)
+	for childIndex in BLOCK_FACES:
+		var faceMask = BLOCK_FACES[childIndex]
+		var face = block.get_child(childIndex)
+		if block.faces & faceMask:
+			face.visible = false
+		else:
+			face.material_override = material[face.name]
+			face.visible = true
+			
+	block.blockKey = blockKey
+	block.type = blockInfo.t
+	block.globalPosition = Vector3i(blockInfo.x, blockInfo.y, blockInfo.z)
+	block.position = Vector3(blockInfo.x, blockInfo.y, blockInfo.z)
+	
+	blocks[blockKey] = block
+	chunk.blocks[blockKey] = block
+	block.chunk = chunk
+	block.enable()
+	return block;
+
+func _configureChunk(position: Vector3i, chunk: Chunk):
+	var chunkKey = formatKey(position.x, position.y, position.z)
+	chunk.enable()
+	chunk.chunkPosition = position
+	chunk.position = Vector3(CHUNK_SIZE * position.x, CHUNK_SIZE * position.y, CHUNK_SIZE * position.z)
+	chunk.chunkKey = chunkKey
+	chunk[chunkKey] = chunk
+	chunk.enable()
+	return chunk
+
+func _removeBlock(blockKey):
+	
+
+
+
 
 func formatKey(x, y, z):
 	return ("i_%s_%s_%s" % [x, y, z]).replace("-", "n")

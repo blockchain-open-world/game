@@ -10,8 +10,8 @@ var _messages = []
 var _messagesToSend = []
 const _useWebsockets = true
 
-func _http_start(scene):
-	scene.add_child(_httpServer)
+func _http_start():
+	add_child(_httpServer)
 	var tls = TLSOptions.client_unsafe()
 	_httpServer.set_tls_options(tls)
 	_httpServer.request_completed.connect(_on_request_completed)
@@ -74,19 +74,19 @@ func _socket_process():
 		var reason = _socket.get_close_reason()
 		print("WebSocket closed with code: %d, reason %s. Clean: %s" % [code, reason, code != -1])
 
-func start(scene):
+func _ready():
 	if _useWebsockets:
 		_socket_start()
 	else:
-		_http_start(scene)
+		_http_start()
 
-func process():
+func _process():
 	if _useWebsockets:
 		_socket_process()
 	else:
 		_http_process()
 
-func stop():
+func _exit_tree():
 	if _useWebsockets:
 		_socket_stop()
 	else:

@@ -12,10 +12,9 @@ var _selectedGenerateChunk = null
 var _chunkMessage = null
 
 func _ready():
-	Network.start(self)
+	pass
 
 func _process(delta):
-	Network.process()
 	_checkOnlineChunks()
 	_checkRemoveChunks()
 	_loadChunks()
@@ -140,4 +139,4 @@ func loadModel(filename):
 				anim.play("Attack")
 
 func _exit_tree():
-	Network.stop()
+	pass
