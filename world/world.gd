@@ -42,7 +42,6 @@ func _checkRemoveChunks():
 		if playerDistace > Main.deleteHorizon * Main.CHUNK_SIZE:
 			Main.removeChunk(chunkKey)
 			loadChunks = loadChunks.filter(func (key): return key != chunkKey)
-			print("removeChunk %s - %s" % [chunkKey, playerDistace])
 			return
 
 func _loadChunks():

@@ -20,10 +20,10 @@ func disable():
 	visible = false
 	get_node("StaticBody3D/CollisionShape3D").disabled = true
 
-func enable(world:Node3D):
+func enable():
 	if state == STATE_NEW:
 		_instanceBlockCollider()
-		world.add_child(self)
+		chunk._world.add_child(self)
 	state = STATE_ENABLED
 	visible = true
 	get_node("StaticBody3D/CollisionShape3D").disabled = false

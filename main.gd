@@ -104,19 +104,8 @@ func _newChunk():
 func _configureBlock(blockInfo: BlockClass, block: Block, chunk: Chunk):
 	var blockKey = formatKey(blockInfo.x, blockInfo.y, blockInfo.z)
 	
-	var faces: int = int(blockInfo.m)
-	block.faces = faces
+	updateBlock(blockInfo, block)
 	
-	var material = _getMaterialBlock(blockInfo.t)
-	for childIndex in BLOCK_FACES:
-		var faceMask = BLOCK_FACES[childIndex]
-		var face = block.get_child(childIndex)
-		if block.faces & faceMask:
-			face.visible = false
-		else:
-			face.material_override = material[face.name]
-			face.visible = true
-			
 	block.blockKey = blockKey
 	block.type = blockInfo.t
 	block.globalPosition = Vector3i(blockInfo.x, blockInfo.y, blockInfo.z)
@@ -125,7 +114,7 @@ func _configureBlock(blockInfo: BlockClass, block: Block, chunk: Chunk):
 	blocks[blockKey] = block
 	chunk.blocks[blockKey] = block
 	block.chunk = chunk
-	block.enable(chunk._world)
+	block.enable()
 	return block;
 
 func _configureChunk(position: Vector3i, chunk: Chunk, world: Node3D):
@@ -162,7 +151,25 @@ func instanceChunk(world, x, y, z):
 	_configureChunk(chunkPosition, chunk, world)
 	return chunk
 
-func instanceBlock(blockInfo: BlockClass, chunk: Chunk):
+func updateBlock(blockInfo: BlockClass, block: Block):
+	block.faces = int(blockInfo.m)
+	
+	var material = _getMaterialBlock(blockInfo.t)
+	for childIndex in BLOCK_FACES:
+		var faceMask = BLOCK_FACES[childIndex]
+		var face = block.get_child(childIndex)
+		if block.faces & faceMask:
+			face.visible = false
+		else:
+			face.material_override = material[face.name]
+			face.visible = true
+
+func instanceBlock(blockInfo: BlockClass):
+	var chunkPosition = transformChunkPosition(Vector3(blockInfo.x, blockInfo.y, blockInfo.z))
+	var chunkKey = formatKey(chunkPosition.x, chunkPosition.y, chunkPosition.z)
+	if not chunks.has(chunkKey):
+		return null;
+	var chunk:Chunk = chunks[chunkKey]
 	var block:Block = null
 	if len(oldBlocks) > 0:
 		block = oldBlocks.pop_back()
@@ -170,6 +177,16 @@ func instanceBlock(blockInfo: BlockClass, chunk: Chunk):
 		block = _newBlock()
 	_configureBlock(blockInfo, block, chunk)
 	return block
+
+func arrayToBlockInfo(array):
+	var blockInfo = BlockClass.new()
+	blockInfo.x = array.pop_front()
+	blockInfo.y = array.pop_front()
+	blockInfo.z = array.pop_front()
+	blockInfo.t = array.pop_front()
+	blockInfo.c = array.pop_front()
+	blockInfo.m = array.pop_front()
+	return blockInfo
 
 func formatKey(x, y, z):
 	return ("i_%s_%s_%s" % [x, y, z]).replace("-", "n")

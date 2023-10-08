@@ -27,14 +27,8 @@ func _process(delta):
 		while count < LOAD_PACK:
 			count += 1
 			if len(_blockInfoArray) > 0:
-				var blockInfo = BlockClass.new()
-				blockInfo.x = _blockInfoArray.pop_front()
-				blockInfo.y = _blockInfoArray.pop_front()
-				blockInfo.z = _blockInfoArray.pop_front()
-				blockInfo.t = _blockInfoArray.pop_front()
-				blockInfo.c = _blockInfoArray.pop_front()
-				blockInfo.m = _blockInfoArray.pop_front()
-				Main.instanceBlock(blockInfo, self)
+				var blockInfo = Main.arrayToBlockInfo(_blockInfoArray)
+				Main.instanceBlock(blockInfo)
 				
 		if len(_blockInfoArray) == 0:
 			state = STATE_ENABLED
@@ -86,15 +80,17 @@ func _onMintBlock(data):
 	var blockKey = Main.formatKey(data.minedBlock.x, data.minedBlock.y, data.minedBlock.z)
 	var block:Block = blocks[blockKey]
 	
-	for i in range(len(data.blocks)):
-		var blockInfo = data.blocks[i]
+	while len(data.blocks) > 0:
+		var blockInfo = Main.arrayToBlockInfo(data.blocks)
 		var newBlockKey = Main.formatKey(blockInfo.x, blockInfo.y, blockInfo.z)
-		var chunk = Main.getChunkByBlockPosition(blockInfo)
-		if chunk.blocks.has(newBlockKey):
-			var oldBlock = chunk.blocks[newBlockKey]
-			Main.removeBlock(blockKey)
-		Main.instanceBlock(blockInfo, self)
-	Main.removeBlock(blockKey)
+		if Main.blocks.has(newBlockKey):
+			if blockInfo.t == 0:
+				Main.removeBlock(newBlockKey)
+			else:
+				var currentblock:Block = Main.blocks[newBlockKey]
+				Main.updateBlock(blockInfo, currentblock)
+		elif blockInfo.t != 0:
+			Main.instanceBlock(blockInfo)
 
 func startLoad():
 	var position = {}
