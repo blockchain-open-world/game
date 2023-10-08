@@ -34,7 +34,7 @@ jobs:
             rm -rf ./dist
             mkdir ./dist
             cp server.py ./dist/server.py
-            rm constants.gd
-            cp constants.deploy constants.gd
+            rm ./classes/constants.gd
+            cp constants.deploy ./classes/constants.gd
             ../Godot --headless --export-debug "Web"
             pm2 -s restart play
