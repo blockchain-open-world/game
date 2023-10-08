@@ -2,7 +2,7 @@ extends Node
 
 var Chunk = preload("res://chunk/chunk.tscn")
 var Block = preload("res://block/block.tscn")
-var BlockClass = preload("res://block/block_class.gd")
+var BlockClass = preload("res://classes/block_class.gd")
 
 const CHUNK_SIZE = 16
 

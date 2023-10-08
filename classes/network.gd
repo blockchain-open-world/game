@@ -1,14 +1,16 @@
 extends Node
 
-const Contants = preload("res://constants.gd")
+const Contants = preload("res://classes/constants.gd")
+const NetworkMessage = preload("res://classes/network_message.gd")
 
 var _httpServer = HTTPRequest.new()
 var _httpOpenRequest = null
 var _socket = WebSocketPeer.new()
+var _socket_last_state
 var _rng = RandomNumberGenerator.new()
 var _messages = []
 var _messagesToSend = []
-const _useWebsockets = false
+const _useWebsockets = true
 
 func _http_start():
 	add_child(_httpServer)
@@ -46,33 +48,48 @@ func _socket_stop():
 	_socket.close(0, "exec _socket_stop")
 
 func _socket_process():
+	_socket.poll()
 	var state = _socket.get_ready_state()
-	if state == WebSocketPeer.STATE_CONNECTING || state == WebSocketPeer.STATE_OPEN:
-		_socket.poll()
-	else:
-		return;
 	if state == WebSocketPeer.STATE_OPEN:
+		# print state
+		if state != _socket_last_state:
+			print("WebSocket connected")
+		# resend old messages
+		var now = Time.get_ticks_msec()
+		for i in range(len(_messages)):
+			var msg: NetworkMessage = _messages[i]
+			if now > msg.timeout:
+				resend(msg)
+		# send new messages
 		for i in range(len(_messagesToSend)):
-			var jsonMsg = JSON.stringify(_messagesToSend[i])
+			var msg:NetworkMessage = _messagesToSend[i]
+			var msgDict = {}
+			msgDict.data = msg.data
+			msgDict.method = msg.method
+			msgDict.id = msg.id
+			var jsonMsg = JSON.stringify(msgDict)
 			_socket.send_text(jsonMsg)
 		_messagesToSend = []
+		# receive messages
 		while _socket.get_available_packet_count():
 			var error = _socket.get_packet_error()
 			var response = _socket.get_packet().get_string_from_utf8()
 			response = JSON.parse_string(response)
 			for i in range(len(_messages)):
-				var msg = _messages[i]
+				var msg: NetworkMessage = _messages[i]
 				if msg.id == response.id:
 					msg.response = response.data
 					msg.received = true
 	elif state == WebSocketPeer.STATE_CLOSING:
-		# Keep polling to achieve proper close.
 		pass
 	elif state == WebSocketPeer.STATE_CLOSED:
 		var code = _socket.get_close_code()
 		var reason = _socket.get_close_reason()
-		print("WebSocket closed with code: %d, reason %s. Clean: %s" % [code, reason, code != -1])
-
+		if state != _socket_last_state:
+			print("WebSocket closed with code: %d, reason %s. Clean: %s" % [code, reason, code != -1])
+		_socket_start()
+	_socket_last_state = state
+	
 func _ready():
 	if _useWebsockets:
 		_socket_start()
@@ -92,7 +109,8 @@ func _exit_tree():
 		_http_stop()
 
 func send(method, data):
-	var msg = {}
+	var msg:NetworkMessage = NetworkMessage.new()
+	msg.timeout = Time.get_ticks_msec() + Contants.timeout
 	msg.id = _rng.randi()
 	msg.data = data
 	msg.method = method
@@ -102,6 +120,12 @@ func send(method, data):
 	_messagesToSend.push_back(msg)
 	return msg;
 
-func clearMessage(msg):
+func resend(msg:NetworkMessage):
+	msg.timeout = Time.get_ticks_msec() + Contants.timeout
+	_messagesToSend.push_back(msg)
+	return msg;
+
+
+func clearMessage(msg:NetworkMessage):
 	_messages = _messages.filter(func (m): return m.id != msg.id)
 	_messagesToSend = _messagesToSend.filter(func (m): return m.id != msg.id)
