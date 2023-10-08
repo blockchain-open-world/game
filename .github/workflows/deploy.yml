@@ -12,25 +12,6 @@ jobs:
       - name: 🚚 Get latest code
         uses: actions/checkout@v3
       
-      - name: 🤖 Change constants
-        run: |
-          rm constants.gd
-          cp constants.deploy constants.gd
-
-      - name: 🔨 Export Project
-        uses: firebelley/godot-export@v5.2.0
-        with:
-          godot_executable_download_url: https://downloads.tuxfamily.org/godotengine/4.0/Godot_v4.0-stable_linux.x86_64.zip
-          godot_export_templates_download_url: https://downloads.tuxfamily.org/godotengine/4.0/Godot_v4.0-stable_export_templates.tpz
-          relative_project_path: ./
-          archive_output: true
-
-      - name: 🤖 Copy build
-        run: |
-          mkdir dist
-          cp /home/runner/.local/share/godot/builds/Web/* ./dist/
-          cp server.py ./dist/server.py
-
       - name: 📂 Sync files
         uses: appleboy/scp-action@master
         with: 
@@ -40,3 +21,16 @@ jobs:
           source: "."
           target: ${{ secrets.DEPLOY_PATH }}
           strip_components: 1
+
+      - name: 🥳 Build
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          password: ${{ secrets.DEPLOY_PASS }}
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            rm ./dist/index.*
+            rm constants.gd
+            cp constants.deploy constants.gd
+            ../Godot --headless --export-debug "Web"
