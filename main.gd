@@ -32,6 +32,7 @@ const BLOCK_FACES = {
 var horizon = 1
 var deleteHorizon = 4
 var blocksCount = 0
+var chunksCount = 0
 
 var oldChunks = []
 var oldBlocks = []
@@ -93,9 +94,11 @@ func _exit_tree():
 	#_thread.wait_to_finish()
 
 func _newBlock():
+	blocksCount += 1
 	return Block.instantiate()
 
 func _newChunk():
+	chunksCount += 1
 	return Chunk.instantiate()
 
 func _configureBlock(blockInfo: BlockClass, block: Block, chunk: Chunk):
@@ -151,20 +154,24 @@ func removeChunk(chunkKey):
 func instanceChunk(world, x, y, z):
 	var chunkPosition = Vector3i(x, y, z)
 	
-	#if len(_newChunks) == 0:
-	#	return
-	
-	var chunk = _newChunk()
+	var chunk:Chunk = null
+	#if len(oldChunks) > 0:
+	#	chunk = oldChunks.pop_back()
+	#else:
+	#	chunk = _newChunk()
+	chunk = _newChunk()
 	_configureChunk(chunkPosition, chunk, world)
-	print("instanceChunk %s" % chunk.chunkKey)
 	return chunk
 
 func instanceBlock(blockInfo: BlockClass, chunk: Chunk):
-	#if len(_newBlocks) == 0:
-	#	return
-	var block = _newBlock()
+	var block:Block = null
+	#if len(oldBlocks) > 0:
+	#	block = oldBlocks.pop_back()
+	#else:
+	#	block = _newBlock()
+	block = _newBlock()
 	_configureBlock(blockInfo, block, chunk)
-	#print("instanceBlock %s" % block.blockKey)
+	return block
 
 func formatKey(x, y, z):
 	return ("i_%s_%s_%s" % [x, y, z]).replace("-", "n")
