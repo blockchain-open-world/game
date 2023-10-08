@@ -28,7 +28,8 @@ func _process(delta):
 			count += 1
 			if len(_blockInfoArray) > 0:
 				var blockInfo = Main.arrayToBlockInfo(_blockInfoArray)
-				Main.instanceBlock(blockInfo)
+				if blockInfo.t != 0:
+					Main.instanceBlock(blockInfo)
 				
 		if len(_blockInfoArray) == 0:
 			state = STATE_ENABLED
@@ -77,7 +78,7 @@ func _onMintBlock(data):
 	if not data.success:
 		return
 	
-	var blockKey = Main.formatKey(data.minedBlock.x, data.minedBlock.y, data.minedBlock.z)
+	var blockKey = Main.formatKey(data.position.x, data.position.y, data.position.z)
 	var block:Block = blocks[blockKey]
 	
 	while len(data.blocks) > 0:
@@ -88,7 +89,7 @@ func _onMintBlock(data):
 				Main.removeBlock(newBlockKey)
 			else:
 				var currentblock:Block = Main.blocks[newBlockKey]
-				Main.updateBlock(blockInfo, currentblock)
+				BlockRender.updateBlock(blockInfo, currentblock)
 		elif blockInfo.t != 0:
 			Main.instanceBlock(blockInfo)
 
@@ -109,7 +110,7 @@ func enable(world: Node3D):
 	_mintMessages = []
 	_blockInfoArray = []
 	$StaticBody3D/CollisionShape3D.disabled = false
-	$MeshInstance3D.visible = true
+	$MeshInstance3D.visible = false # true
 
 func disable():
 	state = STATE_UNLOAD

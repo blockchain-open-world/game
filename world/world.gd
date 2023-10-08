@@ -7,6 +7,7 @@ var playerChunkPosition = Vector3i.ZERO
 var _selectedGenerateChunk:Chunk = null
 var _chunkMessage = null
 var loadChunks = []
+var loadCount = 0
 
 func _ready():
 	pass
@@ -49,6 +50,9 @@ func _loadChunks():
 	if _selectedGenerateChunk != null:
 		if _selectedGenerateChunk.state == _selectedGenerateChunk.STATE_ENABLED:
 			_selectedGenerateChunk = null
+			loadCount += 1
+			if loadCount == 9:
+				$player.start = true
 		return
 		
 	if len(loadChunks) > 0:

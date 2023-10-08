@@ -8,7 +8,7 @@ var _socket = WebSocketPeer.new()
 var _rng = RandomNumberGenerator.new()
 var _messages = []
 var _messagesToSend = []
-const _useWebsockets = true
+const _useWebsockets = false
 
 func _http_start():
 	add_child(_httpServer)

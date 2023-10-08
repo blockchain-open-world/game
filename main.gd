@@ -4,30 +4,7 @@ var Chunk = preload("res://chunk/chunk.tscn")
 var Block = preload("res://block/block.tscn")
 var BlockClass = preload("res://block/block_class.gd")
 
-const tile000 = preload("res://chunk/textures/tile000.png")
-const tile031 = preload("res://chunk/textures/tile031.png")
-const tile002 = preload("res://chunk/textures/tile002.png")
-const tile003 = preload("res://chunk/textures/tile003.png")
-const tile016 = preload("res://chunk/textures/tile024.png")
-const tile022 = preload("res://chunk/textures/tile024.png")
-var blockMaterial = {};
-
 const CHUNK_SIZE = 16
-
-const FACES_RIGHT:int = 1
-const FACES_LEFT:int = 2
-const FACES_BACK:int = 4
-const FACES_FRONT:int = 8
-const FACES_BOTTOM:int = 16
-const FACES_TOP:int = 32
-const BLOCK_FACES = {
-	5: FACES_RIGHT,
-	4: FACES_LEFT,
-	3: FACES_BACK,
-	2: FACES_FRONT,
-	1: FACES_BOTTOM,
-	0: FACES_TOP,
-}
 
 var horizon = 1
 var deleteHorizon = 4
@@ -104,7 +81,7 @@ func _newChunk():
 func _configureBlock(blockInfo: BlockClass, block: Block, chunk: Chunk):
 	var blockKey = formatKey(blockInfo.x, blockInfo.y, blockInfo.z)
 	
-	updateBlock(blockInfo, block)
+	BlockRender.updateBlock(blockInfo, block)
 	
 	block.blockKey = blockKey
 	block.type = blockInfo.t
@@ -150,19 +127,6 @@ func instanceChunk(world, x, y, z):
 		chunk = _newChunk()
 	_configureChunk(chunkPosition, chunk, world)
 	return chunk
-
-func updateBlock(blockInfo: BlockClass, block: Block):
-	block.faces = int(blockInfo.m)
-	
-	var material = _getMaterialBlock(blockInfo.t)
-	for childIndex in BLOCK_FACES:
-		var faceMask = BLOCK_FACES[childIndex]
-		var face = block.get_child(childIndex)
-		if block.faces & faceMask:
-			face.visible = false
-		else:
-			face.material_override = material[face.name]
-			face.visible = true
 
 func instanceBlock(blockInfo: BlockClass):
 	var chunkPosition = transformChunkPosition(Vector3(blockInfo.x, blockInfo.y, blockInfo.z))
@@ -217,90 +181,3 @@ func getChunkByBlockPosition(position):
 	var chunkPosition = transformChunkPosition(position)
 	var chunkKey = formatKey(chunkPosition.x, chunkPosition.y, chunkPosition.z)
 	return chunks[chunkKey]
-
-func _getMaterialBlock(type):
-	if not blockMaterial.has(type):
-		if type == 1:
-			blockMaterial[type] = _getMaterialType1()
-		elif type == 2:
-			blockMaterial[type] = _getMaterialType2()
-		elif type == 3:
-			blockMaterial[type] = _getMaterialType3()
-		elif type == 4:
-			blockMaterial[type] = _getMaterialType4()
-		elif type == 5:
-			blockMaterial[type] = _getMaterialType5()
-		else:
-			assert(false, "invalid type %s" % type)
-	return blockMaterial[type]
-
-func _getMaterialType1():
-	var material = {}
-	var top = StandardMaterial3D.new()
-	top.albedo_texture = tile000
-	
-	var side = StandardMaterial3D.new()
-	side.albedo_texture = tile003
-	
-	var bottom = StandardMaterial3D.new()
-	bottom.albedo_texture = tile002
-	
-	material["top"] = top
-	material["bottom"] = bottom
-	material["left"] = side
-	material["right"] = side
-	material["front"] = side
-	material["back"] = side
-	return material
-	
-func _getMaterialType2():
-	var material = {}
-	var top = StandardMaterial3D.new()
-	top.albedo_texture = tile002
-	
-	material["top"] = top
-	material["bottom"] = top
-	material["left"] = top
-	material["right"] = top
-	material["front"] = top
-	material["back"] = top
-	return material
-
-func _getMaterialType3():
-	var material = {}
-	var top = StandardMaterial3D.new()
-	top.albedo_texture = tile031
-	
-	material["top"] = top
-	material["bottom"] = top
-	material["left"] = top
-	material["right"] = top
-	material["front"] = top
-	material["back"] = top
-	return material
-	
-func _getMaterialType4():
-	var material = {}
-	var top = StandardMaterial3D.new()
-	top.albedo_texture = tile016
-	
-	material["top"] = top
-	material["bottom"] = top
-	material["left"] = top
-	material["right"] = top
-	material["front"] = top
-	material["back"] = top
-	return material
-
-func _getMaterialType5():
-	var material = {}
-	var top = StandardMaterial3D.new()
-	top.albedo_texture = tile022
-	
-	material["top"] = top
-	material["bottom"] = top
-	material["left"] = top
-	material["right"] = top
-	material["front"] = top
-	material["back"] = top
-	return material

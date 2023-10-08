@@ -18,8 +18,8 @@ config/icon="res://icon.svg"
 [autoload]
 
 Network="*res://network.gd"
+BlockRender="*res://block/block_render.gd"
 Main="*res://main.gd"
-ChunkGenerator="*res://world/chunk_generator.gd"
 
 [display]
 
