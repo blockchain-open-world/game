@@ -22,13 +22,12 @@ func _http_stop():
 func _http_process():
 	if _httpOpenRequest != null:
 		return #wait request ends
-	for i in range(len(_messagesToSend)):
-		_httpOpenRequest = _messagesToSend[i]
+	if len(_messagesToSend) > 0:
+		_httpOpenRequest = _messagesToSend.pop_front()
 		var json = JSON.stringify(_httpOpenRequest)
 		var headers = ["Content-Type: application/json"]
 		var url = Contants.server_url % _httpOpenRequest.method
 		_httpServer.request(url, headers, HTTPClient.METHOD_POST, json)
-		_messagesToSend = _messagesToSend.filter(func (m): return m.id != _httpOpenRequest.id)
 
 func _on_request_completed(result, response_code, headers, body):
 	var json = body.get_string_from_utf8()

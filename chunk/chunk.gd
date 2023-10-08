@@ -77,10 +77,6 @@ func mintBlock(blockPosition):
 func _onMintBlock(data):
 	if not data.success:
 		return
-	
-	var blockKey = Main.formatKey(data.position.x, data.position.y, data.position.z)
-	var block:Block = blocks[blockKey]
-	
 	while len(data.blocks) > 0:
 		var blockInfo = Main.arrayToBlockInfo(data.blocks)
 		var newBlockKey = Main.formatKey(blockInfo.x, blockInfo.y, blockInfo.z)
@@ -110,7 +106,7 @@ func enable(world: Node3D):
 	_mintMessages = []
 	_blockInfoArray = []
 	$StaticBody3D/CollisionShape3D.disabled = false
-	$MeshInstance3D.visible = false # true
+	$MeshInstance3D.visible = true
 
 func disable():
 	state = STATE_UNLOAD

@@ -6,7 +6,8 @@
 size = Vector3(16, 16, 16)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_iefsr"]
-albedo_color = Color(0.184314, 0.184314, 0.184314, 1)
+shading_mode = 0
+albedo_color = Color(0.317647, 0.317647, 0.317647, 1)
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_b8pyk"]
 size = Vector3(16, 16, 16)
