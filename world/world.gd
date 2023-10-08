@@ -34,22 +34,21 @@ func _checkOnlineChunks():
 					loadChunks.push_back(chunkKey)
 
 func _checkRemoveChunks():
-	pass
-	#var removeChunks = []
-	#for i in range(len(Main.chunksList)):
-	#	var key = Main.chunksList[i]
-	#	var chunk = Main.chunks[key]
-	#	var playerDistace = Vector3(playerChunkPosition).distance_to(Vector3(chunk.chunkPosition))
-	#	if playerDistace > Main.deleteHorizon:
-	#		Main.removeChunk(key)
-	#		print("removeChunk %s - %s" % [key, playerDistace])
-	#		return
+	var removeChunks = []
+	for i in range(len(Main.chunksList)):
+		var chunkKey = Main.chunksList[i]
+		var chunk = Main.chunks[chunkKey]
+		var playerDistace = player.position.distance_to(chunk.position)
+		if playerDistace > Main.deleteHorizon * Main.CHUNK_SIZE:
+			Main.removeChunk(chunkKey)
+			loadChunks = loadChunks.filter(func (key): return key != chunkKey)
+			print("removeChunk %s - %s" % [chunkKey, playerDistace])
+			return
 
 func _loadChunks():
 	# check if is loading
 	if _selectedGenerateChunk != null:
 		if _selectedGenerateChunk.state == _selectedGenerateChunk.STATE_ENABLED:
-			print("finish load chunk %s" % _selectedGenerateChunk.chunkKey)
 			_selectedGenerateChunk = null
 		return
 		
@@ -68,7 +67,6 @@ func _loadChunks():
 				bestDistance = distance
 		if bestChunk != null:
 			bestChunk.startLoad()
-			print("startLoad chunk %s" % bestChunk.chunkKey)
 			_selectedGenerateChunk = bestChunk
 			loadChunks = loadChunks.filter(func (key): return key != bestChunk.chunkKey)
 

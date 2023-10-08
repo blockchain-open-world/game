@@ -23,8 +23,6 @@ ChunkGenerator="*res://world/chunk_generator.gd"
 
 [display]
 
-window/size/viewport_width=1600
-window/size/viewport_height=1200
 window/size/initial_position_type=0
 
 [filesystem]

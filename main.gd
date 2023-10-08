@@ -30,7 +30,7 @@ const BLOCK_FACES = {
 }
 
 var horizon = 1
-var deleteHorizon = 3
+var deleteHorizon = 4
 var blocksCount = 0
 
 var oldChunks = []
@@ -131,7 +131,7 @@ func _configureChunk(position: Vector3i, chunk: Chunk, world: Node3D):
 	chunk.position = Vector3(CHUNK_SIZE * position.x, CHUNK_SIZE * position.y, CHUNK_SIZE * position.z)
 	chunk.chunkKey = chunkKey
 	chunks[chunkKey] = chunk
-	chunksList.push_back(chunk)
+	chunksList.push_back(chunkKey)
 	chunk.enable(world)
 	return chunk
 
@@ -142,7 +142,8 @@ func removeBlock(blockKey):
 	block.disable()
 	oldBlocks.push_back(block)
 
-func removeChunk(chunk: Chunk):
+func removeChunk(chunkKey):
+	var chunk:Chunk = chunks[chunkKey]
 	chunks.erase(chunk.chunkKey)
 	chunksList = chunksList.filter(func (key): return key != chunk.chunkKey)
 	chunk.disable()

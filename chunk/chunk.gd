@@ -24,7 +24,7 @@ var _chunkMessage = null
 func _process(delta):
 	if state == STATE_LOAD:
 		var count = 0
-		while count < 100:
+		while count < LOAD_PACK:
 			count += 1
 			if len(_blockInfoArray) > 0:
 				var blockInfo = BlockClass.new()
@@ -49,15 +49,17 @@ func _process(delta):
 				Network.clearMessage(msg)
 				return;
 	elif state == STATE_UNLOAD:
-		var count = 0
+		var removeBlocks = []
 		for k in blocks:
-			count += 1
-			var block = blocks[k]
-			Main.removeBlock(block.blockKey)
-			if count >= LOAD_PACK:
-				return
-		state = STATE_DISABLED
-		Main.oldChunks.push_back(self)
+			if len(removeBlocks) < LOAD_PACK:
+				removeBlocks.push_back(blocks[k].blockKey)
+		if len(removeBlocks) == 0:
+			state = STATE_DISABLED
+			
+			Main.oldChunks.push_back(self)
+		else:
+			for i in range(len(removeBlocks)):
+				Main.removeBlock(removeBlocks[i])
 	elif state == STATE_WAIT_DATA:
 		if _chunkMessage != null:
 			if _chunkMessage.received:
@@ -115,3 +117,5 @@ func enable(world: Node3D):
 
 func disable():
 	state = STATE_UNLOAD
+	$StaticBody3D/CollisionShape3D.disabled = true
+	$MeshInstance3D.visible = false
