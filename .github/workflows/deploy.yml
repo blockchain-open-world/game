@@ -30,11 +30,11 @@ jobs:
           password: ${{ secrets.DEPLOY_PASS }}
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
-            pm2 stop play
+            pm2 -s stop play
             rm -rf ./dist
             mkdir ./dist
             cp server.py ./dist/server.py
             rm constants.gd
             cp constants.deploy constants.gd
             ../Godot --headless --export-debug "Web"
-            pm2 restart play
+            pm2 -s restart play
