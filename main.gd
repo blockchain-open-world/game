@@ -155,21 +155,19 @@ func instanceChunk(world, x, y, z):
 	var chunkPosition = Vector3i(x, y, z)
 	
 	var chunk:Chunk = null
-	#if len(oldChunks) > 0:
-	#	chunk = oldChunks.pop_back()
-	#else:
-	#	chunk = _newChunk()
-	chunk = _newChunk()
+	if len(oldChunks) > 0:
+		chunk = oldChunks.pop_back()
+	else:
+		chunk = _newChunk()
 	_configureChunk(chunkPosition, chunk, world)
 	return chunk
 
 func instanceBlock(blockInfo: BlockClass, chunk: Chunk):
 	var block:Block = null
-	#if len(oldBlocks) > 0:
-	#	block = oldBlocks.pop_back()
-	#else:
-	#	block = _newBlock()
-	block = _newBlock()
+	if len(oldBlocks) > 0:
+		block = oldBlocks.pop_back()
+	else:
+		block = _newBlock()
 	_configureBlock(blockInfo, block, chunk)
 	return block
 
