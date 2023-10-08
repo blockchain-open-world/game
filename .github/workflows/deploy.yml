@@ -30,6 +30,7 @@ jobs:
           password: ${{ secrets.DEPLOY_PASS }}
           script: |
             cd ${{ secrets.DEPLOY_PATH }}
+            pm2 stop play
             rm -rf ./dist
             mkdir ./dist
             cp server.py ./dist/server.py
