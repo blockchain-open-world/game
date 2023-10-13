@@ -73,13 +73,11 @@ func _socket_process():
 			sendData.encode_s16(0, _sentMessage.id)
 			sendData.append_array(_sentMessage.data)
 			var error = _socket.send(sendData)
-			print("send: %s" % _sentMessage.id)
 		# receive messages
 		while _sentMessage != null &&  _socket.get_available_packet_count():
 			var error = _socket.get_packet_error()
 			var byteStream = _socket.get_packet();
 			var messageId:int = byteStream.decode_s16(0);
-			print("received: %s - len %s" % [messageId, byteStream.size()])
 			if messageId == _sentMessage.id:
 				_sentMessage.response = byteStream
 				_sentMessage.responseIndex = 2;

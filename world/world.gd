@@ -33,8 +33,6 @@ func _process(delta):
 func _updateMultiplayerPositions(delta):
 	if _playerPosition == null:
 		_uptimePlayerPosition += delta
-		#if _uptimePlayerPosition < 1:
-		#	return;
 		_uptimePlayerPositionCount += 1
 		if _uptimePlayerPosition > 1:
 			_uptimePlayerPositionPS = _uptimePlayerPositionCount / _uptimePlayerPosition
@@ -46,11 +44,11 @@ func _updateMultiplayerPositions(delta):
 		var data = PackedByteArray([0,0,0,0,0,0,0,0,0,0,0,0,0,0])
 		data.encode_s16(0, Network.METHOD_CHANGE_POSITION)
 		data.encode_s16(2, playerId)
-		data.encode_s16(4, playerPosition.x * 10)
-		data.encode_s16(6, playerPosition.y * 10)
-		data.encode_s16(8, playerPosition.z * 10)
-		data.encode_s16(10, playerAngle.x * 10)
-		data.encode_s16(12, playerAngle.y * 10)
+		data.encode_s16(4, playerPosition.x * 100)
+		data.encode_s16(6, playerPosition.y * 100)
+		data.encode_s16(8, playerPosition.z * 100)
+		data.encode_s16(10, playerAngle.x * 100)
+		data.encode_s16(12, playerAngle.y * 100)
 		_playerPosition = Network.send(data)
 	else:
 		if _playerPosition.received:
@@ -59,12 +57,12 @@ func _updateMultiplayerPositions(delta):
 			while _playerPosition.hasNext():
 				var id = _playerPosition.getInteger()
 				var position = Vector3.ZERO
-				position.x = _playerPosition.getInteger() / 10.0
-				position.y = _playerPosition.getInteger() / 10.0
-				position.z = _playerPosition.getInteger() / 10.0
+				position.x = _playerPosition.getInteger() / 100.0
+				position.y = _playerPosition.getInteger() / 100.0
+				position.z = _playerPosition.getInteger() / 100.0
 				var angle = Vector2.ZERO
-				angle.x = _playerPosition.getInteger() / 10.0
-				angle.y = _playerPosition.getInteger() / 10.0
+				angle.x = _playerPosition.getInteger() / 100.0
+				angle.y = _playerPosition.getInteger() / 100.0
 				if id != playerId:
 					var found = false
 					for i in range(len(_otherPlayers)):
