@@ -1,100 +1,146 @@
 extends Node3D
 
-@onready var player = $player
+const NetworkMessage = preload("res://classes/network_message.gd")
+const OtherPlayer = preload("res://mobs/other_players.tscn")
 
-var isLoading = true
-var countLoadChunks = 0
-var loadChunks = []
+@onready var player = $player
 
 var playerChunkPosition = Vector3i.ZERO
 
-var _selectedGenerateChunk = null
-var _chunkMessage = null
+var _selectedGenerateChunk:Chunk = null
+var loadChunks = []
+var loadCount = 0
+var _rng = RandomNumberGenerator.new()
+
+var playerId = int(floor(_rng.randf() * 65534) - 32767)
+var _uptimePlayerPosition:float = 0
+var _uptimePlayerPositionCount:float = 0
+var _uptimePlayerPositionPS:float = 0
+var _playerPosition: NetworkMessage = null
+var _otherPlayers = []
 
 func _ready():
-	Network.start(self)
+	pass
 
 func _process(delta):
-	Network.process()
+	_updateMultiplayerPositions(delta)
 	_checkOnlineChunks()
 	_checkRemoveChunks()
 	_loadChunks()
 	if Input.is_action_just_pressed("action"):
 		debug()
 
+func _updateMultiplayerPositions(delta):
+	if _playerPosition == null:
+		_uptimePlayerPosition += delta
+		_uptimePlayerPositionCount += 1
+		if _uptimePlayerPosition > 1:
+			_uptimePlayerPositionPS = _uptimePlayerPositionCount / _uptimePlayerPosition
+			_uptimePlayerPosition = 0
+			_uptimePlayerPositionCount = 0
+	
+		var playerPosition = player.position
+		var playerAngle = player.mouse_vector
+		var data = PackedByteArray([0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+		data.encode_s16(0, Network.METHOD_CHANGE_POSITION)
+		data.encode_s16(2, playerId)
+		data.encode_s16(4, playerPosition.x * 100)
+		data.encode_s16(6, playerPosition.y * 100)
+		data.encode_s16(8, playerPosition.z * 100)
+		data.encode_s16(10, playerAngle.x * 100)
+		data.encode_s16(12, playerAngle.y * 100)
+		_playerPosition = Network.send(data)
+	else:
+		if _playerPosition.received:
+			for i in range(len(_otherPlayers)):
+				_otherPlayers[i].update = false
+			while _playerPosition.hasNext():
+				var id = _playerPosition.getInteger()
+				var position = Vector3.ZERO
+				position.x = _playerPosition.getInteger() / 100.0
+				position.y = _playerPosition.getInteger() / 100.0
+				position.z = _playerPosition.getInteger() / 100.0
+				var angle = Vector2.ZERO
+				angle.x = _playerPosition.getInteger() / 100.0
+				angle.y = _playerPosition.getInteger() / 100.0
+				if id != playerId:
+					var found = false
+					for i in range(len(_otherPlayers)):
+						var op:OtherPlayer = _otherPlayers[i]
+						if op.id == id:
+							op.currentPosition = position
+							op.currentAngle = angle
+							op.update = true
+							found = true
+					if not found:
+						var op = OtherPlayer.instantiate()
+						op.id = id
+						op.currentPosition = position
+						op.currentAngle = angle
+						op.update = true
+						add_child(op)
+						_otherPlayers.push_back(op)
+			Network.clearMessage(_playerPosition)
+			_playerPosition = null
+			for i in range(len(_otherPlayers)):
+				var op:OtherPlayer = _otherPlayers[i]
+				if not op.update:
+					remove_child(op)
+			_otherPlayers = _otherPlayers.filter(func (op): return op.update)
+		
 func _checkOnlineChunks():
 	var position = player.position
 	playerChunkPosition = Main.transformChunkPosition(position)
 	
 	$info.text = "position: %10.2f, %10.2f, %10.2f\t\t chunk: %s,%s,%s" % [position.x, position.y, position.z, playerChunkPosition.x, playerChunkPosition.y, playerChunkPosition.z]
-	$info2.text = "fps:%s \t\t load chunks %s \t\t blocks: %s" % [Engine.get_frames_per_second(), len(loadChunks), Main.blocksCount]
+	$info2.text = "fps:%s \t\t load chunks %s \t\t chunks: %s \t\t blocks: %s \t\t updates: %10.2f" % [Engine.get_frames_per_second(), len(loadChunks), Main.chunksCount, Main.blocksCount, _uptimePlayerPositionPS]
 	
 	for x in range(playerChunkPosition.x - Main.horizon, playerChunkPosition.x + Main.horizon + 1):
 		for y in range(playerChunkPosition.y - Main.horizon, playerChunkPosition.y + Main.horizon + 1):
 			for z in range(playerChunkPosition.z - Main.horizon, playerChunkPosition.z + Main.horizon + 1):
 				var chunkKey = Main.formatKey(x, y, z)
-				if not Main.chunksMap.has(chunkKey):
-					var chunk = Main.instanceChunk(x, y, z)
-					if chunk.isNew:
-						add_child(chunk)
-						chunk.isNew = false
-					loadChunks.push_front(chunkKey)
-					
-	if not player.start && countLoadChunks > 9:
-		print("player.start")
-		player.start = true
+				if not Main.chunks.has(chunkKey):
+					Main.instanceChunk(self, x, y, z)
+					loadChunks.push_back(chunkKey)
 
 func _checkRemoveChunks():
 	var removeChunks = []
 	for i in range(len(Main.chunksList)):
-		var key = Main.chunksList[i]
-		var chunk = Main.chunksMap[key]
-		var playerDistace = Vector3(playerChunkPosition).distance_to(Vector3(chunk.chunkPosition))
-		if playerDistace > Main.deleteHorizon:
-			loadChunks = loadChunks.filter(func (chunkKey): return key != chunkKey)
-			Main.removeChunk(key)
-			print("removeChunk %s - %s" % [key, playerDistace])
+		var chunkKey = Main.chunksList[i]
+		var chunk = Main.chunks[chunkKey]
+		var playerDistace = player.position.distance_to(chunk.position)
+		if playerDistace > Main.deleteHorizon * Main.CHUNK_SIZE:
+			Main.removeChunk(chunkKey)
+			loadChunks = loadChunks.filter(func (key): return key != chunkKey)
 			return
 
 func _loadChunks():
 	# check if is loading
 	if _selectedGenerateChunk != null:
-		# check if has chunkMessage
-		if _chunkMessage != null:
-			if _chunkMessage.received:
-				ChunkGenerator.instanciateChunk(_chunkMessage.response)
-				Network.clearMessage(_chunkMessage)
-				_chunkMessage = null
-			return;
-		# check if chunk is instancied
-		if ChunkGenerator.isInstancied():
-			_selectedGenerateChunk.receiveBlocksInstance(ChunkGenerator.getChunk())
-			loadChunks = loadChunks.filter(func (key): return key != _selectedGenerateChunk.chunkKey)
-			countLoadChunks += 1
+		if _selectedGenerateChunk.state == _selectedGenerateChunk.STATE_ENABLED:
 			_selectedGenerateChunk = null
-		return;
+			loadCount += 1
+			if loadCount == 9:
+				$player.start = true
+		return
 		
 	if len(loadChunks) > 0:
 		# Select next chunk
 		var bestChunkIndex = 0
-		var bestChunk = null
+		var bestChunk: Chunk = null
 		var bestDistance = 0
 		for i in range(len(loadChunks)):
 			var chunkKey = loadChunks[i]
-			var chunk = Main.chunksMap[chunkKey]
+			var chunk = Main.chunks[chunkKey]
 			var distance = Vector3(playerChunkPosition).distance_squared_to(Vector3(chunk.chunkPosition))
 			if (distance < bestDistance || i == 0):
 				bestChunkIndex = i
 				bestChunk = chunk
 				bestDistance = distance
 		if bestChunk != null:
-			var position = {}
-			position.x = bestChunk.chunkPosition.x
-			position.y = bestChunk.chunkPosition.y
-			position.z = bestChunk.chunkPosition.z
-			_chunkMessage = Network.send("chunk", position)
+			bestChunk.startLoad()
 			_selectedGenerateChunk = bestChunk
-			print("start load chunk %s - left %s" % [bestChunk.chunkKey, len(loadChunks)])
+			loadChunks = loadChunks.filter(func (key): return key != bestChunk.chunkKey)
 
 func debug():
 	print("debug")
@@ -140,4 +186,4 @@ func loadModel(filename):
 				anim.play("Attack")
 
 func _exit_tree():
-	Network.stop()
+	pass

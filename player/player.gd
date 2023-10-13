@@ -1,10 +1,8 @@
 extends CharacterBody3D
 
 var mouseSensibility = 1200
-var mouse_relative_x = 0
-var mouse_relative_y = 0
 const SPEED = 5.0
-const JUMP_VELOCITY = 5.5
+const JUMP_VELOCITY = 6
 
 # Get the gravity from the project settings to be synced with RigidBody nodes.
 @onready var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
@@ -17,7 +15,7 @@ const JUMP_VELOCITY = 5.5
 var mouse_sensitivity = 0.002
 var is_camera_first_person = true
 var fly_mode = false
-var start = true
+var start = false
 var mouse_vector = Vector2.ZERO
 
 func _ready():
@@ -79,9 +77,9 @@ func _input(event):
 	if event is InputEventMouseMotion and Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		rotation.y -= event.relative.x / mouseSensibility
 		$head.rotation.x -= event.relative.y / mouseSensibility
-		$head.rotation.x = clamp($head.rotation.x, deg_to_rad(-90), deg_to_rad(90) )
-		mouse_relative_x = clamp(event.relative.x, -50, 50)
-		mouse_relative_y = clamp(event.relative.y, -50, 10)
+		$head.rotation.x = clamp($head.rotation.x, deg_to_rad(-90), deg_to_rad(90))
+		mouse_vector.x = $head.rotation.x
+		mouse_vector.y = rotation.y
 
 func _changeCameraMode(isFirstPerson):
 	is_camera_first_person = isFirstPerson

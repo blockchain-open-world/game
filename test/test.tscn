@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3 uid="uid://dy1fu01owea42"]
+
+[ext_resource type="PackedScene" uid="uid://dvqoxnk7y67kw" path="res://player/player.tscn" id="1_eo4y1"]
+[ext_resource type="PackedScene" uid="uid://bssikdyn6dbs6" path="res://player/block_selection.tscn" id="2_75m1v"]
+[ext_resource type="PackedScene" uid="uid://cdmipgoa468ux" path="res://block/block.tscn" id="3_5kvpt"]
+
+[node name="Test" type="Node3D"]
+
+[node name="player" parent="." instance=ExtResource("1_eo4y1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.190459, 0, 0.299753)
+
+[node name="block_selection" parent="." instance=ExtResource("2_75m1v")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.333775, 0, 1.37261)
+
+[node name="block" parent="." instance=ExtResource("3_5kvpt")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.66089, -1.19209e-07, -4.33255)
+
+[node name="block2" parent="." instance=ExtResource("3_5kvpt")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.03174, -1.19209e-07, -2.43838)

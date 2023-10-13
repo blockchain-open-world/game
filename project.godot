@@ -17,14 +17,12 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-Network="*res://network.gd"
+Network="*res://classes/network.gd"
+BlockRender="*res://classes/block_render.gd"
 Main="*res://main.gd"
-ChunkGenerator="*res://world/chunk_generator.gd"
 
 [display]
 
-window/size/viewport_width=600
-window/size/viewport_height=400
 window/size/initial_position_type=0
 
 [filesystem]
