@@ -13,7 +13,9 @@ var loadCount = 0
 var _rng = RandomNumberGenerator.new()
 
 var playerId = int(floor(_rng.randf() * 65534) - 32767)
-var _uptimePlayerPosition = 0
+var _uptimePlayerPosition:float = 0
+var _uptimePlayerPositionCount:float = 0
+var _uptimePlayerPositionPS:float = 0
 var _playerPosition: NetworkMessage = null
 var _otherPlayers = []
 
@@ -31,9 +33,13 @@ func _process(delta):
 func _updateMultiplayerPositions(delta):
 	if _playerPosition == null:
 		_uptimePlayerPosition += delta
-		if _uptimePlayerPosition < 0.5: # deplay
-			return;
-		_uptimePlayerPosition = 0
+		#if _uptimePlayerPosition < 1:
+		#	return;
+		_uptimePlayerPositionCount += 1
+		if _uptimePlayerPosition > 1:
+			_uptimePlayerPositionPS = _uptimePlayerPositionCount / _uptimePlayerPosition
+			_uptimePlayerPosition = 0
+			_uptimePlayerPositionCount = 0
 	
 		var playerPosition = player.position
 		var playerAngle = player.mouse_vector
@@ -89,7 +95,7 @@ func _checkOnlineChunks():
 	playerChunkPosition = Main.transformChunkPosition(position)
 	
 	$info.text = "position: %10.2f, %10.2f, %10.2f\t\t chunk: %s,%s,%s" % [position.x, position.y, position.z, playerChunkPosition.x, playerChunkPosition.y, playerChunkPosition.z]
-	$info2.text = "fps:%s \t\t load chunks %s \t\t chunks: %s \t\t blocks: %s" % [Engine.get_frames_per_second(), len(loadChunks), Main.chunksCount, Main.blocksCount]
+	$info2.text = "fps:%s \t\t load chunks %s \t\t chunks: %s \t\t blocks: %s \t\t updates: %10.2f" % [Engine.get_frames_per_second(), len(loadChunks), Main.chunksCount, Main.blocksCount, _uptimePlayerPositionPS]
 	
 	for x in range(playerChunkPosition.x - Main.horizon, playerChunkPosition.x + Main.horizon + 1):
 		for y in range(playerChunkPosition.y - Main.horizon, playerChunkPosition.y + Main.horizon + 1):

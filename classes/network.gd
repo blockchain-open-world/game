@@ -11,6 +11,7 @@ var _httpServer = HTTPRequest.new()
 var _httpOpenRequest = null
 var _socket = WebSocketPeer.new()
 var _socket_last_state
+var _sentMessage: NetworkMessage
 var _rng = RandomNumberGenerator.new()
 var _messages = []
 var _messagesToSend = []
@@ -47,6 +48,7 @@ func _socket_start():
 	_socket.max_queued_packets = 1
 	_socket.encode_buffer_max_size = 1
 	_socket.connect_to_url(Contants.websocket_url, tls)
+	_socket.set_no_delay(false)
 
 func _socket_stop():
 	_socket.close(0, "exec _socket_stop")
@@ -59,30 +61,30 @@ func _socket_process():
 		if state != _socket_last_state:
 			print("WebSocket connected")
 		# resend old messages
-		var now = Time.get_ticks_msec()
-		for i in range(len(_messages)):
-			var msg: NetworkMessage = _messages[i]
-			if now > msg.timeout:
-				resend(msg)
+		if _sentMessage != null:
+			var now = Time.get_ticks_msec()
+			if now > _sentMessage.timeout:
+				resend(_sentMessage)
+				_sentMessage = null
 		# send new messages
-		for i in range(len(_messagesToSend)):
-			var msg:NetworkMessage = _messagesToSend[i]
+		if _sentMessage == null && len(_messagesToSend) > 0:
+			_sentMessage = _messagesToSend.pop_back()
 			var sendData = PackedByteArray([0,0])
-			sendData.encode_s16(0, msg.id)
-			sendData.append_array(msg.data)
-			_socket.send(sendData)
-		_messagesToSend = []
+			sendData.encode_s16(0, _sentMessage.id)
+			sendData.append_array(_sentMessage.data)
+			var error = _socket.send(sendData)
+			print("send: %s" % _sentMessage.id)
 		# receive messages
-		while _socket.get_available_packet_count():
+		while _sentMessage != null &&  _socket.get_available_packet_count():
 			var error = _socket.get_packet_error()
 			var byteStream = _socket.get_packet();
 			var messageId:int = byteStream.decode_s16(0);
-			for i in range(len(_messages)):
-				var msg: NetworkMessage = _messages[i]
-				if msg.id == messageId:
-					msg.response = byteStream
-					msg.responseIndex = 2;
-					msg.received = true
+			print("received: %s - len %s" % [messageId, byteStream.size()])
+			if messageId == _sentMessage.id:
+				_sentMessage.response = byteStream
+				_sentMessage.responseIndex = 2;
+				_sentMessage.received = true
+				_sentMessage = null
 	elif state == WebSocketPeer.STATE_CLOSING:
 		pass
 	elif state == WebSocketPeer.STATE_CLOSED:

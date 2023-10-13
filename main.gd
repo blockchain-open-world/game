@@ -27,42 +27,7 @@ var _newChunks = []
 
 func _ready():
 	pass
-#	_semaphore = Semaphore.new()
-#	_mutex = Mutex.new()
-#	_thread = Thread.new()
-	#_thread.start(_thread_function)
 
-#func _thread_function():
-#	while true:
-#		_semaphore.wait()
-#
-#		var newBlocksLen = 0
-#		var exit_thread = false
-#		
-#		_mutex.lock()
-#		exit_thread = _exit_thread
-#		newBlocksLen = len(_newBlocks)
-#		_mutex.unlock()
-#		
-#		if exit_thread:
-#			return;
-#		
-#		if newBlocksLen < 500:
-#			var arr = []
-#			for i in range(200):
-#				var b = Block.instantiate()
-#				arr.push_front(b)
-#			
-#			_mutex.lock()
-#			_newBlocks.append_array(arr)
-#			_mutex.unlock()
-#
-#func _process(delta):
-#	if len(_newBlocks) < 500:
-#		_newBlocks.push_back(_newBlock())
-#	if len(_newChunks) < 50:
-#		_newChunks.push_back(_newChunk())
-	
 func _exit_tree():
 	pass
 	#_mutex.lock()
