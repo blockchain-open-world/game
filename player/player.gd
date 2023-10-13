@@ -14,7 +14,7 @@ const JUMP_VELOCITY = 6
 # Mouse Control
 var mouse_sensitivity = 0.002
 var is_camera_first_person = true
-var fly_mode = true
+var fly_mode = false
 var start = false
 var mouse_vector = Vector2.ZERO
 
