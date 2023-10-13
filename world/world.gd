@@ -1,24 +1,89 @@
 extends Node3D
 
+const NetworkMessage = preload("res://classes/network_message.gd")
+const OtherPlayer = preload("res://mobs/other_players.tscn")
+
 @onready var player = $player
 
 var playerChunkPosition = Vector3i.ZERO
 
 var _selectedGenerateChunk:Chunk = null
-var _chunkMessage = null
 var loadChunks = []
 var loadCount = 0
+var _rng = RandomNumberGenerator.new()
+
+var playerId = int(floor(_rng.randf() * 65534) - 32767)
+var _uptimePlayerPosition = 0
+var _playerPosition: NetworkMessage = null
+var _otherPlayers = []
 
 func _ready():
 	pass
 
 func _process(delta):
+	_updateMultiplayerPositions(delta)
 	_checkOnlineChunks()
 	_checkRemoveChunks()
 	_loadChunks()
 	if Input.is_action_just_pressed("action"):
 		debug()
 
+func _updateMultiplayerPositions(delta):
+	if _playerPosition == null:
+		_uptimePlayerPosition += delta
+		if _uptimePlayerPosition < 0.5: # deplay
+			return;
+		_uptimePlayerPosition = 0
+	
+		var playerPosition = player.position
+		var playerAngle = player.mouse_vector
+		var data = PackedByteArray([0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+		data.encode_s16(0, Network.METHOD_CHANGE_POSITION)
+		data.encode_s16(2, playerId)
+		data.encode_s16(4, playerPosition.x * 10)
+		data.encode_s16(6, playerPosition.y * 10)
+		data.encode_s16(8, playerPosition.z * 10)
+		data.encode_s16(10, playerAngle.x * 10)
+		data.encode_s16(12, playerAngle.y * 10)
+		_playerPosition = Network.send(data)
+	else:
+		if _playerPosition.received:
+			for i in range(len(_otherPlayers)):
+				_otherPlayers[i].update = false
+			while _playerPosition.hasNext():
+				var id = _playerPosition.getInteger()
+				var position = Vector3.ZERO
+				position.x = _playerPosition.getInteger() / 10.0
+				position.y = _playerPosition.getInteger() / 10.0
+				position.z = _playerPosition.getInteger() / 10.0
+				var angle = Vector2.ZERO
+				angle.x = _playerPosition.getInteger() / 10.0
+				angle.y = _playerPosition.getInteger() / 10.0
+				if id != playerId:
+					var found = false
+					for i in range(len(_otherPlayers)):
+						var op:OtherPlayer = _otherPlayers[i]
+						if op.id == id:
+							op.currentPosition = position
+							op.currentAngle = angle
+							op.update = true
+							found = true
+					if not found:
+						var op = OtherPlayer.instantiate()
+						op.id = id
+						op.currentPosition = position
+						op.currentAngle = angle
+						op.update = true
+						add_child(op)
+						_otherPlayers.push_back(op)
+			Network.clearMessage(_playerPosition)
+			_playerPosition = null
+			for i in range(len(_otherPlayers)):
+				var op:OtherPlayer = _otherPlayers[i]
+				if not op.update:
+					remove_child(op)
+			_otherPlayers = _otherPlayers.filter(func (op): return op.update)
+		
 func _checkOnlineChunks():
 	var position = player.position
 	playerChunkPosition = Main.transformChunkPosition(position)

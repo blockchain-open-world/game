@@ -1,7 +1,8 @@
 extends Node3D
 
-
 class_name Chunk
+
+const NetworkMessage = preload("res://classes/network_message.gd")
 
 const LOAD_PACK = 100
 
@@ -17,21 +18,20 @@ var chunkPosition = Vector3i.ZERO
 var chunkKey = ""
 var blocks = {}
 var _mintMessages = []
-var _blockInfoArray = []
 var _world:Node3D
-var _chunkMessage = null
+var _chunkMessage: NetworkMessage
 
 func _process(delta):
 	if state == STATE_LOAD:
 		var count = 0
 		while count < LOAD_PACK:
 			count += 1
-			if len(_blockInfoArray) > 0:
-				var blockInfo = Main.arrayToBlockInfo(_blockInfoArray)
+			if _chunkMessage.hasNext():
+				var blockInfo = Main.arrayToBlockInfo(_chunkMessage)
 				if blockInfo.t != 0:
 					Main.instanceBlock(blockInfo)
 				
-		if len(_blockInfoArray) == 0:
+		if not _chunkMessage.hasNext():
 			state = STATE_ENABLED
 			$StaticBody3D/CollisionShape3D.disabled = true
 			$MeshInstance3D.visible = false
@@ -39,7 +39,7 @@ func _process(delta):
 		for i in range(len(_mintMessages)):
 			var msg = _mintMessages[i]
 			if msg.received:
-				_onMintBlock(msg.response)
+				_onMintBlock(msg)
 				_mintMessages = _mintMessages.filter(func (m): return m.id != msg.id)
 				Network.clearMessage(msg)
 				return;
@@ -58,27 +58,28 @@ func _process(delta):
 	elif state == STATE_WAIT_DATA:
 		if _chunkMessage != null:
 			if _chunkMessage.received:
-				_setBlockInfoArray(_chunkMessage.response)
+				state = STATE_LOAD
 				Network.clearMessage(_chunkMessage)
-				_chunkMessage = null
-
-func _setBlockInfoArray(blockInfoArray):
-	state = STATE_LOAD
-	_blockInfoArray = blockInfoArray
 
 func mintBlock(blockPosition):
-	var position = {}
-	position.x = blockPosition.x
-	position.y = blockPosition.y
-	position.z = blockPosition.z
-	var msg = Network.send("mint_block", position)
+	var data = PackedByteArray([0,0,0,0,0,0,0,0])
+	data.encode_s16(0, Network.METHOD_MINT_BLOCK)
+	data.encode_s16(2, blockPosition.x)
+	data.encode_s16(4, blockPosition.y)
+	data.encode_s16(6, blockPosition.z)
+	var msg = Network.send(data)
 	_mintMessages.push_back(msg)
 
-func _onMintBlock(data):
-	if not data.success:
+func _onMintBlock(msg: NetworkMessage):
+	var success:int = msg.getInteger()
+	var positionX:int = msg.getInteger()
+	var positionY:int = msg.getInteger()
+	var positionZ:int = msg.getInteger()
+	var size:int = msg.getInteger()
+	if success == 0:
 		return
-	while len(data.blocks) > 0:
-		var blockInfo = Main.arrayToBlockInfo(data.blocks)
+	while msg.hasNext():
+		var blockInfo = Main.arrayToBlockInfo(msg)
 		var newBlockKey = Main.formatKey(blockInfo.x, blockInfo.y, blockInfo.z)
 		if Main.blocks.has(newBlockKey):
 			if blockInfo.t == 0:
@@ -90,11 +91,12 @@ func _onMintBlock(data):
 			Main.instanceBlock(blockInfo)
 
 func startLoad():
-	var position = {}
-	position.x = chunkPosition.x
-	position.y = chunkPosition.y
-	position.z = chunkPosition.z
-	_chunkMessage = Network.send("chunk", position)
+	var data = PackedByteArray([0,0,0,0,0,0,0,0])
+	data.encode_s16(0, Network.METHOD_GET_CHUNK)
+	data.encode_s16(2, chunkPosition.x)
+	data.encode_s16(4, chunkPosition.y)
+	data.encode_s16(6, chunkPosition.z)
+	_chunkMessage = Network.send(data)
 
 func enable(world: Node3D):
 	if state == STATE_NEW:
@@ -104,7 +106,7 @@ func enable(world: Node3D):
 	_world = world
 	blocks = {}
 	_mintMessages = []
-	_blockInfoArray = []
+	_chunkMessage = null
 	$StaticBody3D/CollisionShape3D.disabled = false
 	$MeshInstance3D.visible = true
 

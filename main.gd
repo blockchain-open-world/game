@@ -1,8 +1,9 @@
 extends Node
 
-var Chunk = preload("res://chunk/chunk.tscn")
-var Block = preload("res://block/block.tscn")
-var BlockClass = preload("res://classes/block_class.gd")
+const Chunk = preload("res://chunk/chunk.tscn")
+const Block = preload("res://block/block.tscn")
+const BlockClass = preload("res://classes/block_class.gd")
+const NetworkMessage = preload("res://classes/network_message.gd")
 
 const CHUNK_SIZE = 16
 
@@ -142,14 +143,14 @@ func instanceBlock(blockInfo: BlockClass):
 	_configureBlock(blockInfo, block, chunk)
 	return block
 
-func arrayToBlockInfo(array):
+func arrayToBlockInfo(msg: NetworkMessage):
 	var blockInfo = BlockClass.new()
-	blockInfo.x = array.pop_front()
-	blockInfo.y = array.pop_front()
-	blockInfo.z = array.pop_front()
-	blockInfo.t = array.pop_front()
-	blockInfo.c = array.pop_front()
-	blockInfo.m = array.pop_front()
+	blockInfo.x = msg.getInteger()
+	blockInfo.y = msg.getInteger()
+	blockInfo.z = msg.getInteger()
+	blockInfo.t = msg.getInteger()
+	blockInfo.s = msg.getInteger()
+	blockInfo.m = msg.getInteger()
 	return blockInfo
 
 func formatKey(x, y, z):

@@ -21,23 +21,29 @@ var blockMaterial = {};
 func updateBlock(blockInfo: BlockClass, block: Block):
 	block.faces = int(blockInfo.m)
 	
-	var material = _getMaterialBlock(blockInfo.t)
-	for childIndex in BLOCK_FACES:
-		var faceMask = BLOCK_FACES[childIndex]
-		var face = block.get_child(childIndex)
-		if block.faces & faceMask:
-			face.material_override = material[face.name]
-			face.visible = true
-		else:
-			face.visible = false
+	if blockInfo.t >= 128:
+		block.get_node("mesh").visible = false
+		var material = _getMaterialBlock(blockInfo.s)
+		for childIndex in BLOCK_FACES:
+			var faceMask = BLOCK_FACES[childIndex]
+			var face = block.get_child(childIndex)
+			if block.faces & faceMask:
+				face.material_override = material[face.name]
+				face.visible = true
+			else:
+				face.visible = false
+	elif blockInfo.t == 1:
+		block.get_node("mesh").visible = true
+		for childIndex in BLOCK_FACES:
+			block.get_child(childIndex).visible = false
 
-func _getMaterialBlock(type):
-	if not blockMaterial.has(type):
-		if type == 128:
-			blockMaterial[type] = _getMaterialType1()
+func _getMaterialBlock(skin):
+	if not blockMaterial.has(skin):
+		if skin == 1:
+			blockMaterial[skin] = _getMaterialType1()
 		else:
-			assert(false, "invalid type %s" % type)
-	return blockMaterial[type]
+			assert(false, "invalid skin %s" % skin)
+	return blockMaterial[skin]
 
 func _getMaterialType1():
 	var material = {}

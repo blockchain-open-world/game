@@ -3,6 +3,10 @@ extends Node
 const Contants = preload("res://classes/constants.gd")
 const NetworkMessage = preload("res://classes/network_message.gd")
 
+const METHOD_GET_CHUNK = 1
+const METHOD_MINT_BLOCK = 2
+const METHOD_CHANGE_POSITION = 3
+
 var _httpServer = HTTPRequest.new()
 var _httpOpenRequest = null
 var _socket = WebSocketPeer.new()
@@ -63,22 +67,21 @@ func _socket_process():
 		# send new messages
 		for i in range(len(_messagesToSend)):
 			var msg:NetworkMessage = _messagesToSend[i]
-			var msgDict = {}
-			msgDict.data = msg.data
-			msgDict.method = msg.method
-			msgDict.id = msg.id
-			var jsonMsg = JSON.stringify(msgDict)
-			_socket.send_text(jsonMsg)
+			var sendData = PackedByteArray([0,0])
+			sendData.encode_s16(0, msg.id)
+			sendData.append_array(msg.data)
+			_socket.send(sendData)
 		_messagesToSend = []
 		# receive messages
 		while _socket.get_available_packet_count():
 			var error = _socket.get_packet_error()
-			var response = _socket.get_packet().get_string_from_utf8()
-			response = JSON.parse_string(response)
+			var byteStream = _socket.get_packet();
+			var messageId:int = byteStream.decode_s16(0);
 			for i in range(len(_messages)):
 				var msg: NetworkMessage = _messages[i]
-				if msg.id == response.id:
-					msg.response = response.data
+				if msg.id == messageId:
+					msg.response = byteStream
+					msg.responseIndex = 2;
 					msg.received = true
 	elif state == WebSocketPeer.STATE_CLOSING:
 		pass
@@ -89,7 +92,7 @@ func _socket_process():
 			print("WebSocket closed with code: %d, reason %s. Clean: %s" % [code, reason, code != -1])
 		_socket_start()
 	_socket_last_state = state
-	
+
 func _ready():
 	if _useWebsockets:
 		_socket_start()
@@ -108,13 +111,11 @@ func _exit_tree():
 	else:
 		_http_stop()
 
-func send(method, data):
+func send(data: PackedByteArray):
 	var msg:NetworkMessage = NetworkMessage.new()
 	msg.timeout = Time.get_ticks_msec() + Contants.timeout
-	msg.id = _rng.randi()
+	msg.id = int(floor(_rng.randf() * 65534) - 32767)
 	msg.data = data
-	msg.method = method
-	msg.response = {}
 	msg.received = false
 	_messages.push_back(msg)
 	_messagesToSend.push_back(msg)
@@ -124,7 +125,6 @@ func resend(msg:NetworkMessage):
 	msg.timeout = Time.get_ticks_msec() + Contants.timeout
 	_messagesToSend.push_back(msg)
 	return msg;
-
 
 func clearMessage(msg:NetworkMessage):
 	_messages = _messages.filter(func (m): return m.id != msg.id)

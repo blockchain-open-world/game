@@ -1,8 +1,10 @@
-[gd_scene load_steps=3 format=3 uid="uid://cdmipgoa468ux"]
+[gd_scene load_steps=4 format=3 uid="uid://cdmipgoa468ux"]
 
 [ext_resource type="Script" path="res://block/block.gd" id="1_vu3cs"]
 
 [sub_resource type="QuadMesh" id="QuadMesh_6nb1d"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_ieoy8"]
 
 [node name="block" type="Node3D"]
 script = ExtResource("1_vu3cs")
@@ -36,3 +38,8 @@ skeleton = NodePath("")
 transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, 0, 0.5, 0.5)
 mesh = SubResource("QuadMesh_6nb1d")
 skeleton = NodePath("")
+
+[node name="mesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0.5, 0.5, 0.5)
+visible = false
+mesh = SubResource("SphereMesh_ieoy8")
