@@ -2,6 +2,7 @@ extends Node3D
 
 class_name Chunk
 
+const Block = preload("res://block/block.gd")
 const NetworkMessage = preload("res://classes/network_message.gd")
 
 const LOAD_PACK = 100
@@ -62,41 +63,31 @@ func _process(delta):
 				Network.clearMessage(_chunkMessage)
 
 func mintBlock(blockPosition):
-	var data = PackedByteArray([0,0,0,0,0,0,0,0])
-	data.encode_s16(0, Network.METHOD_MINT_BLOCK)
-	data.encode_s16(2, blockPosition.x)
-	data.encode_s16(4, blockPosition.y)
-	data.encode_s16(6, blockPosition.z)
-	var msg = Network.send(data)
+	var msg = Network.mintBlock(blockPosition)
 	_mintMessages.push_back(msg)
 
 func _onMintBlock(msg: NetworkMessage):
-	var success:int = msg.getInteger()
-	var positionX:int = msg.getInteger()
-	var positionY:int = msg.getInteger()
-	var positionZ:int = msg.getInteger()
-	var size:int = msg.getInteger()
-	if success == 0:
-		return
-	while msg.hasNext():
-		var blockInfo = Main.arrayToBlockInfo(msg)
-		var newBlockKey = Main.formatKey(blockInfo.x, blockInfo.y, blockInfo.z)
-		if Main.blocks.has(newBlockKey):
-			if blockInfo.t == 0:
-				Main.removeBlock(newBlockKey)
-			else:
-				var currentblock:Block = Main.blocks[newBlockKey]
-				BlockRender.updateBlock(blockInfo, currentblock)
-		elif blockInfo.t != 0:
-			Main.instanceBlock(blockInfo)
+	var success:int = msg.getUShort()
+	#var positionX:int = msg.getInteger()
+	#var positionY:int = msg.getInteger()
+	#var positionZ:int = msg.getInteger()
+	#var size:int = msg.getInteger()
+	#if success == 0:
+	#	return
+	#while msg.hasNext():
+	#	var blockInfo = Main.arrayToBlockInfo(msg)
+	#	var newBlockKey = Main.formatKey(blockInfo.x, blockInfo.y, blockInfo.z)
+	#	if Main.blocks.has(newBlockKey):
+	#		if blockInfo.t == 0:
+	#			Main.removeBlock(newBlockKey)
+	#		else:
+	#			var currentblock:Block = Main.blocks[newBlockKey]
+	#			BlockRender.updateBlock(blockInfo, currentblock)
+	#	elif blockInfo.t != 0:
+	#		Main.instanceBlock(blockInfo)
 
 func startLoad():
-	var data = PackedByteArray([0,0,0,0,0,0,0,0])
-	data.encode_s16(0, Network.METHOD_GET_CHUNK)
-	data.encode_s16(2, chunkPosition.x)
-	data.encode_s16(4, chunkPosition.y)
-	data.encode_s16(6, chunkPosition.z)
-	_chunkMessage = Network.send(data)
+	_chunkMessage = Network.getChunk(chunkPosition)
 
 func enable(world: Node3D):
 	if state == STATE_NEW:

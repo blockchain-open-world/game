@@ -5,13 +5,15 @@ const NetworkMessage = preload("res://classes/network_message.gd")
 
 const METHOD_GET_CHUNK = 1
 const METHOD_MINT_BLOCK = 2
-const METHOD_CHANGE_POSITION = 3
+const METHOD_SHARE_POSITION = 3
+const METHOD_UPDATE_MAP = 4
 
 var _httpServer = HTTPRequest.new()
 var _httpOpenRequest = null
 var _socket = WebSocketPeer.new()
 var _socket_last_state
 var _sentMessage: NetworkMessage
+var _messagesSent = []
 var _rng = RandomNumberGenerator.new()
 var _messages = []
 var _messagesToSend = []
@@ -48,7 +50,6 @@ func _socket_start():
 	_socket.max_queued_packets = 1
 	_socket.encode_buffer_max_size = 1
 	_socket.connect_to_url(Contants.websocket_url, tls)
-	_socket.set_no_delay(false)
 
 func _socket_stop():
 	_socket.close(0, "exec _socket_stop")
@@ -64,24 +65,42 @@ func _socket_process():
 		if _sentMessage != null:
 			var now = Time.get_ticks_msec()
 			if now > _sentMessage.timeout:
-				resend(_sentMessage)
-				_sentMessage = null
+				_sentMessage.timeout = Time.get_ticks_msec() + Contants.timeout
+				_socket.send(_sentMessage.data)
 		# send new messages
 		if _sentMessage == null && len(_messagesToSend) > 0:
-			_sentMessage = _messagesToSend.pop_back()
-			var sendData = PackedByteArray([0,0])
-			sendData.encode_s16(0, _sentMessage.id)
-			sendData.append_array(_sentMessage.data)
-			var error = _socket.send(sendData)
+			_sentMessage = NetworkMessage.new()
+			_sentMessage.timeout = Time.get_ticks_msec() + Contants.timeout
+			_sentMessage.id = int(floor(_rng.randf() * 0xFFFF))
+			_sentMessage.data = PackedByteArray([0,0])
+			_sentMessage.data.encode_u16(0, _sentMessage.id)
+			_sentMessage.received = false
+			for i in range(len(_messagesToSend)):
+				var msg: NetworkMessage = _messagesToSend[i]
+				var sendData = PackedByteArray([0,0,0,0,0,0])
+				sendData.encode_u16(0, msg.method)
+				sendData.encode_u32(2, msg.data.size())
+				sendData.append_array(msg.data)
+				_sentMessage.data.append_array(sendData)
+				_messagesSent.push_back(msg)
+			_socket.send(_sentMessage.data)
 		# receive messages
-		while _sentMessage != null &&  _socket.get_available_packet_count():
-			var error = _socket.get_packet_error()
-			var byteStream = _socket.get_packet();
-			var messageId:int = byteStream.decode_s16(0);
+		while _sentMessage != null && _socket.get_available_packet_count():
+			var byteArray = _socket.get_packet();
+			var index = 0;
+			var messageId:int = byteArray.decode_u16(index)
+			index+=2
 			if messageId == _sentMessage.id:
-				_sentMessage.response = byteStream
-				_sentMessage.responseIndex = 2;
-				_sentMessage.received = true
+				for i in range(len(_messagesSent)):
+					var msg: NetworkMessage = _messagesSent[i]
+					var size:int = byteArray.decode_u32(index)
+					index+=4
+					msg.response = byteArray.slice(index, index + size)
+					index += size
+					msg.responseIndex = 0;
+					msg.received = true;
+					_messagesToSend = _messagesToSend.filter(func (m): return m.id != msg.id)
+				_messagesSent = []
 				_sentMessage = null
 	elif state == WebSocketPeer.STATE_CLOSING:
 		pass
@@ -111,21 +130,45 @@ func _exit_tree():
 	else:
 		_http_stop()
 
-func send(data: PackedByteArray):
+func _send(method:int, data: PackedByteArray):
 	var msg:NetworkMessage = NetworkMessage.new()
-	msg.timeout = Time.get_ticks_msec() + Contants.timeout
-	msg.id = int(floor(_rng.randf() * 65534) - 32767)
+	msg.id = int(floor(_rng.randf() * 0xFFFF))
+	msg.method = method
 	msg.data = data
 	msg.received = false
 	_messages.push_back(msg)
 	_messagesToSend.push_back(msg)
 	return msg;
 
-func resend(msg:NetworkMessage):
-	msg.timeout = Time.get_ticks_msec() + Contants.timeout
-	_messagesToSend.push_back(msg)
-	return msg;
-
 func clearMessage(msg:NetworkMessage):
 	_messages = _messages.filter(func (m): return m.id != msg.id)
 	_messagesToSend = _messagesToSend.filter(func (m): return m.id != msg.id)
+
+func getChunk(position: Vector3i):
+	var data = PackedByteArray([0,0,0,0,0,0,0,0,0,0,0,0])
+	data.encode_s32(0, position.x)
+	data.encode_s32(4, position.y)
+	data.encode_s32(8, position.z)
+	return _send(Network.METHOD_GET_CHUNK, data)
+
+func mintBlock(position: Vector3i):
+	var data = PackedByteArray([0,0,0,0,0,0,0,0,0,0,0,0])
+	data.encode_s32(0, position.x)
+	data.encode_s32(4, position.y)
+	data.encode_s32(8, position.z)
+	return _send(Network.METHOD_MINT_BLOCK, data)
+
+func sharePosition(playerId:int, position: Vector3, angle: Vector2):
+	var data = PackedByteArray([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+	data.encode_u32(0, playerId)
+	data.encode_s32(4, position.x)
+	data.encode_s32(8, position.y)
+	data.encode_s32(12, position.z)
+	data.encode_s32(16, angle.x)
+	data.encode_s32(20, angle.y)
+	return _send(Network.METHOD_SHARE_POSITION, data)
+
+func updateMap(playerId:int):
+	var data = PackedByteArray([0,0,0,0])
+	data.encode_u32(0, playerId)
+	return _send(Network.METHOD_UPDATE_MAP, data)

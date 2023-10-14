@@ -1,5 +1,7 @@
 extends Node
 
+const Block = preload("res://block/block.gd")
+
 const FACES_RIGHT:int = 1
 const FACES_LEFT:int = 2
 const FACES_BACK:int = 4

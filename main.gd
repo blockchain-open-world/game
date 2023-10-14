@@ -1,6 +1,7 @@
 extends Node
 
 const Chunk = preload("res://chunk/chunk.tscn")
+const BlockType = preload("res://block/block.gd")
 const Block = preload("res://block/block.tscn")
 const BlockClass = preload("res://classes/block_class.gd")
 const NetworkMessage = preload("res://classes/network_message.gd")
@@ -44,7 +45,7 @@ func _newChunk():
 	chunksCount += 1
 	return Chunk.instantiate()
 
-func _configureBlock(blockInfo: BlockClass, block: Block, chunk: Chunk):
+func _configureBlock(blockInfo: BlockClass, block: BlockType, chunk: Chunk):
 	var blockKey = formatKey(blockInfo.x, blockInfo.y, blockInfo.z)
 	
 	BlockRender.updateBlock(blockInfo, block)
@@ -71,7 +72,7 @@ func _configureChunk(position: Vector3i, chunk: Chunk, world: Node3D):
 	return chunk
 
 func removeBlock(blockKey):
-	var block:Block = blocks[blockKey]
+	var block:BlockType = blocks[blockKey]
 	blocks.erase(blockKey)
 	block.chunk.blocks.erase(blockKey)
 	block.disable()
@@ -100,7 +101,7 @@ func instanceBlock(blockInfo: BlockClass):
 	if not chunks.has(chunkKey):
 		return null;
 	var chunk:Chunk = chunks[chunkKey]
-	var block:Block = null
+	var block:BlockType = null
 	if len(oldBlocks) > 0:
 		block = oldBlocks.pop_back()
 	else:

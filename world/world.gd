@@ -2,6 +2,7 @@ extends Node3D
 
 const NetworkMessage = preload("res://classes/network_message.gd")
 const OtherPlayer = preload("res://mobs/other_players.tscn")
+const BlockType = preload("res://block/block.gd")
 
 @onready var player = $player
 
@@ -12,57 +13,60 @@ var loadChunks = []
 var loadCount = 0
 var _rng = RandomNumberGenerator.new()
 
-var playerId = int(floor(_rng.randf() * 65534) - 32767)
-var _uptimePlayerPosition:float = 0
-var _uptimePlayerPositionCount:float = 0
-var _uptimePlayerPositionPS:float = 0
-var _playerPosition: NetworkMessage = null
+var playerId = int(floor(_rng.randf() * 0xFFFFFFFF))
+var _updatePlayersMessage: NetworkMessage = null
 var _otherPlayers = []
+
+var _updateMapMessage: NetworkMessage = null
 
 func _ready():
 	pass
 
 func _process(delta):
-	_updateMultiplayerPositions(delta)
+	_updatePlayers(delta)
+	_updateMap(delta)
 	_checkOnlineChunks()
 	_checkRemoveChunks()
 	_loadChunks()
 	if Input.is_action_just_pressed("action"):
 		debug()
 
-func _updateMultiplayerPositions(delta):
-	if _playerPosition == null:
-		_uptimePlayerPosition += delta
-		_uptimePlayerPositionCount += 1
-		if _uptimePlayerPosition > 1:
-			_uptimePlayerPositionPS = _uptimePlayerPositionCount / _uptimePlayerPosition
-			_uptimePlayerPosition = 0
-			_uptimePlayerPositionCount = 0
-	
-		var playerPosition = player.position
-		var playerAngle = player.mouse_vector
-		var data = PackedByteArray([0,0,0,0,0,0,0,0,0,0,0,0,0,0])
-		data.encode_s16(0, Network.METHOD_CHANGE_POSITION)
-		data.encode_s16(2, playerId)
-		data.encode_s16(4, playerPosition.x * 100)
-		data.encode_s16(6, playerPosition.y * 100)
-		data.encode_s16(8, playerPosition.z * 100)
-		data.encode_s16(10, playerAngle.x * 100)
-		data.encode_s16(12, playerAngle.y * 100)
-		_playerPosition = Network.send(data)
+func _updateMap(delta):
+	if _updateMapMessage == null:
+		_updateMapMessage = Network.updateMap(playerId)
+	elif _updateMapMessage.received:
+		while _updateMapMessage.hasNext():
+			var blockInfo = Main.arrayToBlockInfo(_updateMapMessage)
+			var newBlockKey = Main.formatKey(blockInfo.x, blockInfo.y, blockInfo.z)
+			if Main.blocks.has(newBlockKey):
+				if blockInfo.t == 0:
+					Main.removeBlock(newBlockKey)
+				else:
+					var currentblock:BlockType = Main.blocks[newBlockKey]
+					BlockRender.updateBlock(blockInfo, currentblock)
+			elif blockInfo.t != 0:
+				Main.instanceBlock(blockInfo)
+		Network.clearMessage(_updateMapMessage)
+		_updateMapMessage = null
+
+func _updatePlayers(delta):
+	if _updatePlayersMessage == null:
+		var playerPosition = player.position * 100.0
+		var playerAngle = player.mouse_vector * 100.0
+		_updatePlayersMessage = Network.sharePosition(playerId, playerPosition, playerAngle)
 	else:
-		if _playerPosition.received:
+		if _updatePlayersMessage.received:
 			for i in range(len(_otherPlayers)):
 				_otherPlayers[i].update = false
-			while _playerPosition.hasNext():
-				var id = _playerPosition.getInteger()
+			while _updatePlayersMessage.hasNext():
+				var id = _updatePlayersMessage.getUInteger()
 				var position = Vector3.ZERO
-				position.x = _playerPosition.getInteger() / 100.0
-				position.y = _playerPosition.getInteger() / 100.0
-				position.z = _playerPosition.getInteger() / 100.0
+				position.x = _updatePlayersMessage.getInteger() / 100.0
+				position.y = _updatePlayersMessage.getInteger() / 100.0
+				position.z = _updatePlayersMessage.getInteger() / 100.0
 				var angle = Vector2.ZERO
-				angle.x = _playerPosition.getInteger() / 100.0
-				angle.y = _playerPosition.getInteger() / 100.0
+				angle.x = _updatePlayersMessage.getInteger() / 100.0
+				angle.y = _updatePlayersMessage.getInteger() / 100.0
 				if id != playerId:
 					var found = false
 					for i in range(len(_otherPlayers)):
@@ -80,20 +84,20 @@ func _updateMultiplayerPositions(delta):
 						op.update = true
 						add_child(op)
 						_otherPlayers.push_back(op)
-			Network.clearMessage(_playerPosition)
-			_playerPosition = null
+			Network.clearMessage(_updatePlayersMessage)
+			_updatePlayersMessage = null
 			for i in range(len(_otherPlayers)):
 				var op:OtherPlayer = _otherPlayers[i]
 				if not op.update:
 					remove_child(op)
 			_otherPlayers = _otherPlayers.filter(func (op): return op.update)
-		
+
 func _checkOnlineChunks():
 	var position = player.position
 	playerChunkPosition = Main.transformChunkPosition(position)
 	
 	$info.text = "position: %10.2f, %10.2f, %10.2f\t\t chunk: %s,%s,%s" % [position.x, position.y, position.z, playerChunkPosition.x, playerChunkPosition.y, playerChunkPosition.z]
-	$info2.text = "fps:%s \t\t load chunks %s \t\t chunks: %s \t\t blocks: %s \t\t updates: %10.2f" % [Engine.get_frames_per_second(), len(loadChunks), Main.chunksCount, Main.blocksCount, _uptimePlayerPositionPS]
+	$info2.text = "fps:%s \t\t load chunks %s \t\t chunks: %s \t\t blocks: %s" % [Engine.get_frames_per_second(), len(loadChunks), Main.chunksCount, Main.blocksCount]
 	
 	for x in range(playerChunkPosition.x - Main.horizon, playerChunkPosition.x + Main.horizon + 1):
 		for y in range(playerChunkPosition.y - Main.horizon, playerChunkPosition.y + Main.horizon + 1):
