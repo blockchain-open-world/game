@@ -1,6 +1,6 @@
 extends Node3D
 
-const NetworkMessage = preload("res://classes/network_message.gd")
+const NetworkMessage = preload("res:///networking/network_message.gd")
 const OtherPlayer = preload("res://mobs/other_players.tscn")
 const BlockType = preload("res://block/block.gd")
 
@@ -19,17 +19,37 @@ var _otherPlayers = []
 
 var _updateMapMessage: NetworkMessage = null
 
+# multiplayer feature
+@onready var client = $Client
+var _isLobbyConected = false
+var _lobbyPlayers = []
+
 func _ready():
-	pass
+	client.lobby_joined.connect(self._lobby_joined)
+	client.lobby_sealed.connect(self._lobby_sealed)
+	client.connected.connect(self._connected)
+	client.disconnected.connect(self._disconnected)
+	
+	multiplayer.connected_to_server.connect(self._mp_server_connected)
+	multiplayer.connection_failed.connect(self._mp_server_disconnect)
+	multiplayer.server_disconnected.connect(self._mp_server_disconnect)
+	multiplayer.peer_connected.connect(self._mp_peer_connected)
+	multiplayer.peer_disconnected.connect(self._mp_peer_disconnected)
+	
+	print("unique id: %s" % multiplayer.get_unique_id())
+	
+	client.start("main", true)
 
 func _process(delta):
-	_updatePlayers(delta)
+	#_updatePlayers(delta)
+	_multiplayerProcess(delta)
 	_updateMap(delta)
 	_checkOnlineChunks()
 	_checkRemoveChunks()
 	_loadChunks()
-	if Input.is_action_just_pressed("action"):
-		debug()
+	#if Input.is_action_just_pressed("action"):
+		#updatePosition.rpc(player.position, player.mouse_vector)
+		#debug()
 
 func _updateMap(delta):
 	if _updateMapMessage == null:
@@ -145,6 +165,62 @@ func _loadChunks():
 			bestChunk.startLoad()
 			_selectedGenerateChunk = bestChunk
 			loadChunks = loadChunks.filter(func (key): return key != bestChunk.chunkKey)
+
+func _multiplayerProcess(delta):
+	updatePosition.rpc(player.position, player.mouse_vector)
+	
+	var timeout = Time.get_ticks_msec() - 1000
+	for i in range(len(_lobbyPlayers)):
+		var op:OtherPlayer = _lobbyPlayers[i]
+		if op.update < timeout:
+			remove_child(op)
+			
+	_lobbyPlayers = _lobbyPlayers.filter(func (op): return op.update >= timeout)
+
+@rpc("any_peer", "call_local")
+func updatePosition(position:Vector3, angle:Vector2):
+	var id = multiplayer.get_remote_sender_id()
+	if id != multiplayer.get_unique_id():
+		var found = false
+		for i in range(len(_lobbyPlayers)):
+			var op:OtherPlayer = _lobbyPlayers[i]
+			if op.id == id:
+				op.currentPosition = position
+				op.currentAngle = angle
+				op.update = Time.get_ticks_msec()
+				found = true
+		if not found:
+			var op = OtherPlayer.instantiate()
+			op.id = id
+			op.currentPosition = position
+			op.currentAngle = angle
+			op.update = Time.get_ticks_msec()
+			add_child(op)
+			_lobbyPlayers.push_back(op)
+
+func _connected(id):
+	print("[Signaling] Server connected with ID: %d" % id)
+
+func _disconnected():
+	print("[Signaling] Server disconnected: %d - %s" % [client.code, client.reason])
+
+func _lobby_joined(lobby):
+	print("[Signaling] Joined lobby %s" % lobby)
+
+func _lobby_sealed():
+	print("[Signaling] Lobby has been sealed")
+
+func _mp_server_connected():
+	print("[Multiplayer] Server connected (I am %d)" % client.rtc_mp.get_unique_id())
+
+func _mp_server_disconnect():
+	print("[Multiplayer] Server disconnected (I am %d)" % client.rtc_mp.get_unique_id())
+
+func _mp_peer_connected(id: int):
+	print("[Multiplayer] Peer %d connected" % id)
+
+func _mp_peer_disconnected(id: int):
+	print("[Multiplayer] Peer %d disconnected" % id)
 
 func debug():
 	print("debug")

@@ -4,6 +4,8 @@ var mouseSensibility = 1200
 const SPEED = 5.0
 const JUMP_VELOCITY = 6
 
+const Contants = preload("res://classes/constants.gd")
+
 # Get the gravity from the project settings to be synced with RigidBody nodes.
 @onready var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")
 @onready var head = $head
@@ -14,8 +16,8 @@ const JUMP_VELOCITY = 6
 # Mouse Control
 var mouse_sensitivity = 0.002
 var is_camera_first_person = true
-var fly_mode = false
-var start = false
+var fly_mode = Contants.flyMode
+var start = Contants.waitLoading
 var mouse_vector = Vector2.ZERO
 
 func _ready():

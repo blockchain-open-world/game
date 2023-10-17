@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://bpbms4eco2ak8"]
+[gd_scene load_steps=8 format=3 uid="uid://bpbms4eco2ak8"]
 
 [ext_resource type="Script" path="res://world/world.gd" id="1_juall"]
 [ext_resource type="PackedScene" uid="uid://dvqoxnk7y67kw" path="res://player/player.tscn" id="1_ycrrn"]
 [ext_resource type="PackedScene" uid="uid://bssikdyn6dbs6" path="res://player/block_selection.tscn" id="3_1akt3"]
+[ext_resource type="Script" path="res://networking/multiplayer_client.gd" id="4_f1mg6"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_ec3ln"]
 line_spacing = 2.0
@@ -49,3 +50,6 @@ transform = Transform3D(1, 0, 0, 0, 0.0381261, 0.999273, 0, -0.999273, 0.0381261
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_dakss")
 camera_attributes = SubResource("CameraAttributesPractical_v11m2")
+
+[node name="Client" type="Node" parent="."]
+script = ExtResource("4_f1mg6")

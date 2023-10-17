@@ -4,7 +4,7 @@ const Chunk = preload("res://chunk/chunk.tscn")
 const BlockType = preload("res://block/block.gd")
 const Block = preload("res://block/block.tscn")
 const BlockClass = preload("res://classes/block_class.gd")
-const NetworkMessage = preload("res://classes/network_message.gd")
+const NetworkMessage = preload("res://networking/network_message.gd")
 
 const CHUNK_SIZE = 16
 

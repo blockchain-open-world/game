@@ -3,7 +3,7 @@ extends Node3D
 class_name Chunk
 
 const Block = preload("res://block/block.gd")
-const NetworkMessage = preload("res://classes/network_message.gd")
+const NetworkMessage = preload("res://networking/network_message.gd")
 
 const LOAD_PACK = 100
 

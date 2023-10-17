@@ -17,7 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
-Network="*res://classes/network.gd"
+Network="*res://networking/network.gd"
 BlockRender="*res://classes/block_render.gd"
 Main="*res://main.gd"
 

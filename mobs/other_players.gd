@@ -3,7 +3,7 @@ extends Node3D
 class_name OtherPlayer
 
 var id:int = 0
-var update = false
+var update:int = 0
 var currentAngle = Vector2.ZERO
 var currentPosition = Vector3.ZERO
 const FOLLOW_SPEED = 5.0
