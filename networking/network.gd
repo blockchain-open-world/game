@@ -77,10 +77,10 @@ func _socket_process():
 			_sentMessage.data = PackedByteArray([0,0])
 			_sentMessage.data.encode_u16(0, _sentMessage.id)
 			_sentMessage.received = false
-			#var count = 0
+			var count = 0
 			for i in range(len(_messagesToSend)):
-				#if count > 3:
-				#	break
+				if count > 20:
+					break
 				var msg: NetworkMessage = _messagesToSend[i]
 				var sendData = PackedByteArray([0,0,0,0,0,0])
 				sendData.encode_u16(0, msg.method)
@@ -88,7 +88,7 @@ func _socket_process():
 				sendData.append_array(msg.data)
 				_sentMessage.data.append_array(sendData)
 				_messagesSent.push_back(msg)
-				#count+=1
+				count+=1
 			print("send %s - %s" % [len(_messagesSent), _sentMessage.data.size()])
 			_socket.send(_sentMessage.data)
 		# receive messages

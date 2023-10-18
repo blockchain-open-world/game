@@ -90,5 +90,6 @@ func enable(world: Node3D):
 
 func disable():
 	state = STATE_UNLOAD
+	_chunkMessage = null
 	$StaticBody3D/CollisionShape3D.disabled = true
 	$MeshInstance3D.visible = false
