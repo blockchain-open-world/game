@@ -68,24 +68,7 @@ func mintBlock(blockPosition):
 
 func _onMintBlock(msg: NetworkMessage):
 	var success:int = msg.getUShort()
-	#var positionX:int = msg.getInteger()
-	#var positionY:int = msg.getInteger()
-	#var positionZ:int = msg.getInteger()
-	#var size:int = msg.getInteger()
-	#if success == 0:
-	#	return
-	#while msg.hasNext():
-	#	var blockInfo = Main.arrayToBlockInfo(msg)
-	#	var newBlockKey = Main.formatKey(blockInfo.x, blockInfo.y, blockInfo.z)
-	#	if Main.blocks.has(newBlockKey):
-	#		if blockInfo.t == 0:
-	#			Main.removeBlock(newBlockKey)
-	#		else:
-	#			var currentblock:Block = Main.blocks[newBlockKey]
-	#			BlockRender.updateBlock(blockInfo, currentblock)
-	#	elif blockInfo.t != 0:
-	#		Main.instanceBlock(blockInfo)
-
+	
 func startLoad():
 	_chunkMessage = Network.getChunk(chunkPosition)
 

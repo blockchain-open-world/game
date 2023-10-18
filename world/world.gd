@@ -15,7 +15,8 @@ var _rng = RandomNumberGenerator.new()
 
 var playerId = int(floor(_rng.randf() * 0xFFFFFFFF))
 var _sharePositionMessage: NetworkMessage = null
-var _sharePositionUptime:float = 0
+var _sharePositionUptime:float = 11.0
+const DELAY_SHARE_POSITION = 10
 
 var _updateMapMessage: NetworkMessage = null
 
@@ -71,7 +72,7 @@ func _updateMap(delta):
 
 func _updatePlayers(delta):
 	_sharePositionUptime += delta
-	if _sharePositionUptime < 10:
+	if _sharePositionUptime < DELAY_SHARE_POSITION:
 		return;
 	_sharePositionUptime = 0
 	print("_updatePlayers")
@@ -111,14 +112,14 @@ func _checkRemoveChunks():
 
 func _loadChunks():
 	# check if is loading
-	if _selectedGenerateChunk != null:
-		if _selectedGenerateChunk.state == _selectedGenerateChunk.STATE_ENABLED:
-			_selectedGenerateChunk = null
-			loadCount += 1
-			if loadCount == 9:
-				$player.start = true
-		return
-		
+#	if _selectedGenerateChunk != null:
+#		if _selectedGenerateChunk.state == _selectedGenerateChunk.STATE_ENABLED:
+#			_selectedGenerateChunk = null
+#			loadCount += 1
+#			if loadCount == 9:
+#				$player.start = true
+#		return
+	$player.start = true
 	if len(loadChunks) > 0:
 		# Select next chunk
 		var bestChunkIndex = 0
@@ -134,7 +135,7 @@ func _loadChunks():
 				bestDistance = distance
 		if bestChunk != null:
 			bestChunk.startLoad()
-			_selectedGenerateChunk = bestChunk
+			#_selectedGenerateChunk = bestChunk
 			loadChunks = loadChunks.filter(func (key): return key != bestChunk.chunkKey)
 
 func _multiplayerProcess(delta):
