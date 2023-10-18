@@ -37,8 +37,6 @@ func _ready():
 	multiplayer.peer_connected.connect(self._mp_peer_connected)
 	multiplayer.peer_disconnected.connect(self._mp_peer_disconnected)
 	
-	print("unique id: %s" % multiplayer.get_unique_id())
-	
 	client.start("main", true)
 
 func _process(delta):
@@ -75,7 +73,6 @@ func _updatePlayers(delta):
 	if _sharePositionUptime < DELAY_SHARE_POSITION:
 		return;
 	_sharePositionUptime = 0
-	print("_updatePlayers")
 	if _sharePositionMessage == null:
 		var playerPosition = player.position
 		_sharePositionMessage = Network.sharePosition(playerId, playerPosition)

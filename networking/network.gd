@@ -47,8 +47,10 @@ func _on_request_completed(result, response_code, headers, body):
 
 func _socket_start():
 	var tls = TLSOptions.client_unsafe()
-	_socket.max_queued_packets = 1
-	_socket.encode_buffer_max_size = 1
+	_socket.max_queued_packets = 100
+	_socket.encode_buffer_max_size = 1000000
+	_socket.inbound_buffer_size = 1000000
+	_socket.outbound_buffer_size = 1000000
 	_socket.connect_to_url(Contants.websocket_url, tls)
 
 func _socket_stop():
@@ -75,10 +77,10 @@ func _socket_process():
 			_sentMessage.data = PackedByteArray([0,0])
 			_sentMessage.data.encode_u16(0, _sentMessage.id)
 			_sentMessage.received = false
-			var count = 0
+			#var count = 0
 			for i in range(len(_messagesToSend)):
-				if count > 5:
-					break
+				#if count > 3:
+				#	break
 				var msg: NetworkMessage = _messagesToSend[i]
 				var sendData = PackedByteArray([0,0,0,0,0,0])
 				sendData.encode_u16(0, msg.method)
@@ -86,7 +88,8 @@ func _socket_process():
 				sendData.append_array(msg.data)
 				_sentMessage.data.append_array(sendData)
 				_messagesSent.push_back(msg)
-				count+=1
+				#count+=1
+			print("send %s - %s" % [len(_messagesSent), _sentMessage.data.size()])
 			_socket.send(_sentMessage.data)
 		# receive messages
 		while _sentMessage != null && _socket.get_available_packet_count():
@@ -95,6 +98,7 @@ func _socket_process():
 			var messageId:int = byteArray.decode_u16(index)
 			index+=2
 			if messageId == _sentMessage.id:
+				print("get_packet size %s" % byteArray.size())
 				for i in range(len(_messagesSent)):
 					var msg: NetworkMessage = _messagesSent[i]
 					var size:int = byteArray.decode_u32(index)
@@ -104,6 +108,7 @@ func _socket_process():
 					msg.responseIndex = 0;
 					msg.received = true;
 					_messagesToSend = _messagesToSend.filter(func (m): return m.id != msg.id)
+					#print("msg.response %s - %s" % [i, msg.response.size()])
 				_messagesSent = []
 				_sentMessage = null
 	elif state == WebSocketPeer.STATE_CLOSING:

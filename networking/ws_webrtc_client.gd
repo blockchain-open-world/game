@@ -36,14 +36,11 @@ func _process(delta):
 	ws.poll()
 	var state = ws.get_ready_state()
 	if state != old_state and state == WebSocketPeer.STATE_OPEN and autojoin:
-		print("join_lobby")
 		join_lobby(lobby)
 	while state == WebSocketPeer.STATE_OPEN and ws.get_available_packet_count():
-		print("WebSocketPeer.STATE_OPEN")
 		if not _parse_msg():
 			print("Error parsing message from server.")
 	if state != old_state and state == WebSocketPeer.STATE_CLOSED:
-		print("WebSocketPeer.STATE_CLOSED")
 		code = ws.get_close_code()
 		reason = ws.get_close_reason()
 		disconnected.emit()

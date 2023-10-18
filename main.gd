@@ -8,8 +8,8 @@ const NetworkMessage = preload("res://networking/network_message.gd")
 
 const CHUNK_SIZE = 16
 
-var horizon = 1
-var deleteHorizon = 4
+var horizon = 2
+var deleteHorizon = 6
 var blocksCount = 0
 var chunksCount = 0
 
