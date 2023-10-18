@@ -158,14 +158,12 @@ func mintBlock(position: Vector3i):
 	data.encode_s32(8, position.z)
 	return _send(Network.METHOD_MINT_BLOCK, data)
 
-func sharePosition(playerId:int, position: Vector3, angle: Vector2):
-	var data = PackedByteArray([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
+func sharePosition(playerId:int, position: Vector3):
+	var data = PackedByteArray([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
 	data.encode_u32(0, playerId)
 	data.encode_s32(4, position.x)
 	data.encode_s32(8, position.y)
 	data.encode_s32(12, position.z)
-	data.encode_s32(16, angle.x)
-	data.encode_s32(20, angle.y)
 	return _send(Network.METHOD_SHARE_POSITION, data)
 
 func updateMap(playerId:int):

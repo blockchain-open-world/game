@@ -14,8 +14,8 @@ var loadCount = 0
 var _rng = RandomNumberGenerator.new()
 
 var playerId = int(floor(_rng.randf() * 0xFFFFFFFF))
-var _updatePlayersMessage: NetworkMessage = null
-var _otherPlayers = []
+var _sharePositionMessage: NetworkMessage = null
+var _sharePositionUptime:float = 0
 
 var _updateMapMessage: NetworkMessage = null
 
@@ -41,7 +41,7 @@ func _ready():
 	client.start("main", true)
 
 func _process(delta):
-	#_updatePlayers(delta)
+	_updatePlayers(delta)
 	_multiplayerProcess(delta)
 	_updateMap(delta)
 	_checkOnlineChunks()
@@ -70,47 +70,18 @@ func _updateMap(delta):
 		_updateMapMessage = null
 
 func _updatePlayers(delta):
-	if _updatePlayersMessage == null:
-		var playerPosition = player.position * 100.0
-		var playerAngle = player.mouse_vector * 100.0
-		_updatePlayersMessage = Network.sharePosition(playerId, playerPosition, playerAngle)
+	_sharePositionUptime += delta
+	if _sharePositionUptime < 10:
+		return;
+	_sharePositionUptime = 0
+	print("_updatePlayers")
+	if _sharePositionMessage == null:
+		var playerPosition = player.position
+		_sharePositionMessage = Network.sharePosition(playerId, playerPosition)
 	else:
-		if _updatePlayersMessage.received:
-			for i in range(len(_otherPlayers)):
-				_otherPlayers[i].update = false
-			while _updatePlayersMessage.hasNext():
-				var id = _updatePlayersMessage.getUInteger()
-				var position = Vector3.ZERO
-				position.x = _updatePlayersMessage.getInteger() / 100.0
-				position.y = _updatePlayersMessage.getInteger() / 100.0
-				position.z = _updatePlayersMessage.getInteger() / 100.0
-				var angle = Vector2.ZERO
-				angle.x = _updatePlayersMessage.getInteger() / 100.0
-				angle.y = _updatePlayersMessage.getInteger() / 100.0
-				if id != playerId:
-					var found = false
-					for i in range(len(_otherPlayers)):
-						var op:OtherPlayer = _otherPlayers[i]
-						if op.id == id:
-							op.currentPosition = position
-							op.currentAngle = angle
-							op.update = true
-							found = true
-					if not found:
-						var op = OtherPlayer.instantiate()
-						op.id = id
-						op.currentPosition = position
-						op.currentAngle = angle
-						op.update = true
-						add_child(op)
-						_otherPlayers.push_back(op)
-			Network.clearMessage(_updatePlayersMessage)
-			_updatePlayersMessage = null
-			for i in range(len(_otherPlayers)):
-				var op:OtherPlayer = _otherPlayers[i]
-				if not op.update:
-					remove_child(op)
-			_otherPlayers = _otherPlayers.filter(func (op): return op.update)
+		if _sharePositionMessage.received:
+			Network.clearMessage(_sharePositionMessage)
+			_sharePositionMessage = null
 
 func _checkOnlineChunks():
 	var position = player.position
