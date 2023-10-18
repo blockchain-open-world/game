@@ -19,6 +19,8 @@ var _sharePositionUptime:float = 11.0
 const DELAY_SHARE_POSITION = 10
 
 var _updateMapMessage: NetworkMessage = null
+var _updateMapUptime:float = 0
+const DELAY_UPDATE_MAP = 1
 
 # multiplayer feature
 @onready var client = $Client
@@ -51,6 +53,11 @@ func _process(delta):
 		#debug()
 
 func _updateMap(delta):
+	_updateMapUptime += delta
+	if _updateMapUptime < DELAY_UPDATE_MAP:
+		return;
+	_updateMapUptime = 0
+	
 	if _updateMapMessage == null:
 		_updateMapMessage = Network.updateMap(playerId)
 	elif _updateMapMessage.received:

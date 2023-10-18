@@ -154,6 +154,7 @@ func clearMessage(msg:NetworkMessage):
 	_messagesToSend = _messagesToSend.filter(func (m): return m.id != msg.id)
 
 func getChunk(position: Vector3i):
+	print("getChunk")
 	var data = PackedByteArray([0,0,0,0,0,0,0,0,0,0,0,0])
 	data.encode_s32(0, position.x)
 	data.encode_s32(4, position.y)
@@ -161,6 +162,7 @@ func getChunk(position: Vector3i):
 	return _send(Network.METHOD_GET_CHUNK, data)
 
 func mintBlock(position: Vector3i):
+	print("mintBlock")
 	var data = PackedByteArray([0,0,0,0,0,0,0,0,0,0,0,0])
 	data.encode_s32(0, position.x)
 	data.encode_s32(4, position.y)
@@ -168,6 +170,7 @@ func mintBlock(position: Vector3i):
 	return _send(Network.METHOD_MINT_BLOCK, data)
 
 func sharePosition(playerId:int, position: Vector3):
+	print("sharePosition")
 	var data = PackedByteArray([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
 	data.encode_u32(0, playerId)
 	data.encode_s32(4, position.x)
@@ -176,6 +179,7 @@ func sharePosition(playerId:int, position: Vector3):
 	return _send(Network.METHOD_SHARE_POSITION, data)
 
 func updateMap(playerId:int):
+	print("updateMap")
 	var data = PackedByteArray([0,0,0,0])
 	data.encode_u32(0, playerId)
 	return _send(Network.METHOD_UPDATE_MAP, data)
