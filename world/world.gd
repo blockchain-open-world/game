@@ -93,7 +93,7 @@ func _checkOnlineChunks():
 	playerChunkPosition = Main.transformChunkPosition(position)
 	
 	$info.text = "position: %10.2f, %10.2f, %10.2f\t\t chunk: %s,%s,%s" % [position.x, position.y, position.z, playerChunkPosition.x, playerChunkPosition.y, playerChunkPosition.z]
-	$info2.text = "fps:%s \t\t network %s \t\t chunks: %s \t\t blocks: %s" % [Engine.get_frames_per_second(), len(Network._messagesToSend) + len(Network._messagesSent), Main.chunksCount, Main.blocksCount]
+	$info2.text = "fps:%s \t\t network %s \t\t chunks: %s \t\t blocks: %s" % [Engine.get_frames_per_second(), len(loadChunks), Main.chunksCount, Main.blocksCount]
 	
 	for x in range(playerChunkPosition.x - Main.horizon, playerChunkPosition.x + Main.horizon + 1):
 		for y in range(playerChunkPosition.y - Main.horizon, playerChunkPosition.y + Main.horizon + 1):
@@ -116,13 +116,13 @@ func _checkRemoveChunks():
 
 func _loadChunks():
 	# check if is loading
-#	if _selectedGenerateChunk != null:
-#		if _selectedGenerateChunk.state == _selectedGenerateChunk.STATE_ENABLED:
-#			_selectedGenerateChunk = null
-#			loadCount += 1
-#			if loadCount == 9:
-#				$player.start = true
-#		return
+	if _selectedGenerateChunk != null:
+		if _selectedGenerateChunk.state == _selectedGenerateChunk.STATE_ENABLED:
+			_selectedGenerateChunk = null
+			loadCount += 1
+			if loadCount == 9:
+				$player.start = true
+		return
 	$player.start = true
 	if len(loadChunks) > 0:
 		# Select next chunk
@@ -139,7 +139,7 @@ func _loadChunks():
 				bestDistance = distance
 		if bestChunk != null:
 			bestChunk.startLoad()
-			#_selectedGenerateChunk = bestChunk
+			_selectedGenerateChunk = bestChunk
 			loadChunks = loadChunks.filter(func (key): return key != bestChunk.chunkKey)
 
 func _multiplayerProcess(delta):

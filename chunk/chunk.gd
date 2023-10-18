@@ -21,8 +21,11 @@ var blocks = {}
 var _mintMessages = []
 var _world:Node3D
 var _chunkMessage: NetworkMessage
+var _isStarted = false
 
 func _process(delta):
+	if not _isStarted:
+		return
 	if state == STATE_LOAD:
 		var count = 0
 		while count < LOAD_PACK:
@@ -70,7 +73,7 @@ func _onMintBlock(msg: NetworkMessage):
 	var success:int = msg.getUShort()
 	
 func startLoad():
-	_chunkMessage = Network.getChunk(chunkPosition)
+	_isStarted = true
 
 func enable(world: Node3D):
 	if state == STATE_NEW:
@@ -80,7 +83,8 @@ func enable(world: Node3D):
 	_world = world
 	blocks = {}
 	_mintMessages = []
-	_chunkMessage = null
+	_chunkMessage = Network.getChunk(chunkPosition)
+	_isStarted = false
 	$StaticBody3D/CollisionShape3D.disabled = false
 	$MeshInstance3D.visible = true
 
