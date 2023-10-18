@@ -93,7 +93,7 @@ func _checkOnlineChunks():
 	playerChunkPosition = Main.transformChunkPosition(position)
 	
 	$info.text = "position: %10.2f, %10.2f, %10.2f\t\t chunk: %s,%s,%s" % [position.x, position.y, position.z, playerChunkPosition.x, playerChunkPosition.y, playerChunkPosition.z]
-	$info2.text = "fps:%s \t\t load chunks %s \t\t chunks: %s \t\t blocks: %s" % [Engine.get_frames_per_second(), len(loadChunks), Main.chunksCount, Main.blocksCount]
+	$info2.text = "fps:%s \t\t network %s \t\t chunks: %s \t\t blocks: %s" % [Engine.get_frames_per_second(), len(Network._messagesToSend) + len(Network._messagesSent), Main.chunksCount, Main.blocksCount]
 	
 	for x in range(playerChunkPosition.x - Main.horizon, playerChunkPosition.x + Main.horizon + 1):
 		for y in range(playerChunkPosition.y - Main.horizon, playerChunkPosition.y + Main.horizon + 1):
