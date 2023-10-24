@@ -5,3 +5,6 @@
 */**/*.tmp
 
 dist/
+
+# enviroment
+/classes/constants.gd

@@ -10,6 +10,5 @@ const server_url = "http://127.0.0.1:8082/%s"
 const timeout = 30000
 
 # Player
-
 const flyMode = true
 const waitLoading = false
