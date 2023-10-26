@@ -1,0 +1,23 @@
+[gd_scene load_steps=7 format=3 uid="uid://eyiikffb0gac"]
+
+[ext_resource type="PackedScene" uid="uid://dfrule4rn8qbm" path="res://bomb/bomb.fbx" id="1_cu7ap"]
+[ext_resource type="Texture2D" uid="uid://ckb8kgm78p6jn" path="res://bomb/C4_Albedo.tga" id="2_luer4"]
+[ext_resource type="Texture2D" uid="uid://b0btel3g3485o" path="res://bomb/C4_Emissive.tga" id="3_mpw7a"]
+[ext_resource type="Texture2D" uid="uid://b2vr22cujg0w4" path="res://bomb/C4_Metalness.tga" id="4_uydtr"]
+[ext_resource type="Texture2D" uid="uid://bih7vmj2k6ejg" path="res://bomb/C4_Roughness.tga" id="5_2enuy"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_keejl"]
+albedo_texture = ExtResource("2_luer4")
+metallic = 1.0
+metallic_texture = ExtResource("4_uydtr")
+roughness_texture = ExtResource("5_2enuy")
+emission_enabled = true
+emission_texture = ExtResource("3_mpw7a")
+
+[node name="bomb" instance=ExtResource("1_cu7ap")]
+
+[node name="CINEMA_4D_Editor" parent="RootNode" index="0"]
+visible = false
+
+[node name="C4bomb" parent="RootNode" index="1"]
+surface_material_override/0 = SubResource("StandardMaterial3D_keejl")

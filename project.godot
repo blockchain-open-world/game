@@ -25,10 +25,6 @@ Main="*res://main.gd"
 
 window/size/initial_position_type=0
 
-[filesystem]
-
-import/fbx/enabled=false
-
 [input]
 
 forward={
