@@ -19,23 +19,11 @@ var chunks = {}
 var chunksList = []
 var blocks = {}
 
-var _semaphore: Semaphore
-var _mutex: Mutex
-var _thread: Thread
-var _exit_thread = false
-var _newBlocks = []
-var _newChunks = []
-
 func _ready():
 	pass
 
 func _exit_tree():
 	pass
-	#_mutex.lock()
-	#_exit_thread = true
-	#_mutex.unlock()
-	#_semaphore.post()
-	#_thread.wait_to_finish()
 
 func _newBlock():
 	blocksCount += 1

@@ -2,6 +2,8 @@ extends Node
 
 enum Message {JOIN, ID, PEER_CONNECT, PEER_DISCONNECT, OFFER, ANSWER, CANDIDATE, SEAL}
 
+const Contants = preload("res://classes/constants.gd")
+
 @export var autojoin := true
 @export var lobby := "" # Will create a new lobby if empty.
 @export var mesh := true # Will use the lobby host as relay otherwise.
@@ -21,18 +23,20 @@ signal answer_received(id, answer)
 signal candidate_received(id, mid, index, sdp)
 signal lobby_sealed()
 
-const Contants = preload("res://classes/constants.gd")
 
 func connect_to_url():
 	close()
 	code = 1000
 	reason = "Unknown"
-	ws.connect_to_url(Contants.webrtc_url)
+	var tls = TLSOptions.client_unsafe()
+	ws.connect_to_url(Contants.webrtc_url, tls)
+
 
 func close():
 	ws.close()
 
-func _process(delta):
+
+func _process(_delta):
 	ws.poll()
 	var state = ws.get_ready_state()
 	if state != old_state and state == WebSocketPeer.STATE_OPEN and autojoin:
@@ -45,6 +49,7 @@ func _process(delta):
 		reason = ws.get_close_reason()
 		disconnected.emit()
 	old_state = state
+
 
 func _parse_msg():
 	var parsed = JSON.parse_string(ws.get_packet().get_string_from_utf8())
@@ -89,20 +94,26 @@ func _parse_msg():
 		return false
 	return true # Parsed
 
-func join_lobby(lobby: String):
-	return _send_msg(Message.JOIN, 0 if mesh else 1, lobby)
+
+func join_lobby(lobby_: String):
+	return _send_msg(Message.JOIN, 0 if mesh else 1, lobby_)
+
 
 func seal_lobby():
 	return _send_msg(Message.SEAL, 0)
 
+
 func send_candidate(id, mid, index, sdp) -> int:
 	return _send_msg(Message.CANDIDATE, id, "\n%s\n%d\n%s" % [mid, index, sdp])
+
 
 func send_offer(id, offer) -> int:
 	return _send_msg(Message.OFFER, id, offer)
 
+
 func send_answer(id, answer) -> int:
 	return _send_msg(Message.ANSWER, id, answer)
+
 
 func _send_msg(type: int, id: int, data:="") -> int:
 	return ws.send_text(JSON.stringify({

@@ -38,12 +38,15 @@ func _http_process():
 		var url = Contants.server_url % _httpOpenRequest.method
 		_httpServer.request(url, headers, HTTPClient.METHOD_POST, json)
 
-func _on_request_completed(result, response_code, headers, body):
-	var json = body.get_string_from_utf8()
-	var response = JSON.parse_string(json)
-	_httpOpenRequest.response = response.data
-	_httpOpenRequest.received = true
-	_httpOpenRequest = null
+func _on_request_completed(result, response_code, _headers, body):
+	if result and response_code == 200:
+		var json = body.get_string_from_utf8()
+		var response = JSON.parse_string(json)
+		_httpOpenRequest.response = response.data
+		_httpOpenRequest.received = true
+		_httpOpenRequest = null
+	else:
+		print("_on_request_completed result = %s" % result)
 
 func _socket_start():
 	var tls = TLSOptions.client_unsafe()
@@ -89,7 +92,6 @@ func _socket_process():
 				_sentMessage.data.append_array(sendData)
 				_messagesSent.push_back(msg)
 				count+=1
-			print("send %s - %s" % [len(_messagesSent), _sentMessage.data.size()])
 			_socket.send(_sentMessage.data)
 		# receive messages
 		while _sentMessage != null && _socket.get_available_packet_count():
@@ -98,7 +100,6 @@ func _socket_process():
 			var messageId:int = byteArray.decode_u16(index)
 			index+=2
 			if messageId == _sentMessage.id:
-				print("get_packet size %s" % byteArray.size())
 				for i in range(len(_messagesSent)):
 					var msg: NetworkMessage = _messagesSent[i]
 					var size:int = byteArray.decode_u32(index)
@@ -127,7 +128,7 @@ func _ready():
 	else:
 		_http_start()
 
-func _process(delta):
+func _process(_delta):
 	if _useWebsockets:
 		_socket_process()
 	else:
@@ -154,7 +155,6 @@ func clearMessage(msg:NetworkMessage):
 	_messagesToSend = _messagesToSend.filter(func (m): return m.id != msg.id)
 
 func getChunk(position: Vector3i):
-	print("getChunk")
 	var data = PackedByteArray([0,0,0,0,0,0,0,0,0,0,0,0])
 	data.encode_s32(0, position.x)
 	data.encode_s32(4, position.y)
@@ -162,7 +162,6 @@ func getChunk(position: Vector3i):
 	return _send(Network.METHOD_GET_CHUNK, data)
 
 func mintBlock(position: Vector3i):
-	print("mintBlock")
 	var data = PackedByteArray([0,0,0,0,0,0,0,0,0,0,0,0])
 	data.encode_s32(0, position.x)
 	data.encode_s32(4, position.y)
@@ -170,16 +169,14 @@ func mintBlock(position: Vector3i):
 	return _send(Network.METHOD_MINT_BLOCK, data)
 
 func sharePosition(playerId:int, position: Vector3):
-	print("sharePosition")
 	var data = PackedByteArray([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0])
 	data.encode_u32(0, playerId)
-	data.encode_s32(4, position.x)
-	data.encode_s32(8, position.y)
-	data.encode_s32(12, position.z)
+	data.encode_s32(4, (int) (position.x))
+	data.encode_s32(8, (int) (position.y))
+	data.encode_s32(12, (int) (position.z))
 	return _send(Network.METHOD_SHARE_POSITION, data)
 
 func updateMap(playerId:int):
-	print("updateMap")
 	var data = PackedByteArray([0,0,0,0])
 	data.encode_u32(0, playerId)
 	return _send(Network.METHOD_UPDATE_MAP, data)

@@ -23,7 +23,7 @@ var _world:Node3D
 var _chunkMessage: NetworkMessage
 var _isStarted = false
 
-func _process(delta):
+func _process(_delta):
 	if not _isStarted:
 		return
 	if state == STATE_LOAD:
@@ -71,6 +71,7 @@ func mintBlock(blockPosition):
 
 func _onMintBlock(msg: NetworkMessage):
 	var success:int = msg.getUShort()
+	assert(success == 1)
 	
 func startLoad():
 	_isStarted = true

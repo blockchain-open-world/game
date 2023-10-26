@@ -17,17 +17,19 @@ func _init():
 	peer_disconnected.connect(self._peer_disconnected)
 
 
-func start(lobby = "", mesh:=true):
+func start(lobby_ = "", mesh_:=true):
 	stop()
 	sealed = false
-	self.mesh = mesh
-	self.lobby = lobby
+	self.mesh = mesh_
+	self.lobby = lobby_
 	connect_to_url()
+
 
 func stop():
 	multiplayer.multiplayer_peer = null
 	rtc_mp.close()
 	close()
+
 
 func _create_peer(id):
 	var peer: WebRTCPeerConnection = WebRTCPeerConnection.new()
@@ -66,8 +68,8 @@ func _connected(id, use_mesh):
 	multiplayer.multiplayer_peer = rtc_mp
 
 
-func _lobby_joined(lobby):
-	self.lobby = lobby
+func _lobby_joined(lobby_):
+	self.lobby = lobby_
 
 
 func _lobby_sealed():

@@ -24,7 +24,6 @@ const DELAY_UPDATE_MAP = 1
 
 # multiplayer feature
 @onready var client = $Client
-var _isLobbyConected = false
 var _lobbyPlayers = []
 
 func _ready():
@@ -49,6 +48,7 @@ func _process(delta):
 	_checkRemoveChunks()
 	_loadChunks()
 	#if Input.is_action_just_pressed("action"):
+		#client.start("main", true)
 		#updatePosition.rpc(player.position, player.mouse_vector)
 		#debug()
 
@@ -89,10 +89,10 @@ func _updatePlayers(delta):
 			_sharePositionMessage = null
 
 func _checkOnlineChunks():
-	var position = player.position
-	playerChunkPosition = Main.transformChunkPosition(position)
+	var playerPosition = player.position
+	playerChunkPosition = Main.transformChunkPosition(playerPosition)
 	
-	$info.text = "position: %10.2f, %10.2f, %10.2f\t\t chunk: %s,%s,%s" % [position.x, position.y, position.z, playerChunkPosition.x, playerChunkPosition.y, playerChunkPosition.z]
+	$info.text = "position: %10.2f, %10.2f, %10.2f\t\t chunk: %s,%s,%s" % [playerPosition.x, playerPosition.y, playerPosition.z, playerChunkPosition.x, playerChunkPosition.y, playerChunkPosition.z]
 	$info2.text = "fps:%s \t\t network %s \t\t loading chunks %s \t\t chunks: %s \t\t blocks: %s" % [Engine.get_frames_per_second(), len(Network._messagesToSend), len(loadChunks), Main.chunksCount, Main.blocksCount]
 	
 	for x in range(playerChunkPosition.x - Main.horizon, playerChunkPosition.x + Main.horizon + 1):
@@ -104,7 +104,6 @@ func _checkOnlineChunks():
 					loadChunks.push_back(chunkKey)
 
 func _checkRemoveChunks():
-	var removeChunks = []
 	for i in range(len(Main.chunksList)):
 		var chunkKey = Main.chunksList[i]
 		var chunk = Main.chunks[chunkKey]
@@ -126,7 +125,6 @@ func _loadChunks():
 	$player.start = true
 	if len(loadChunks) > 0:
 		# Select next chunk
-		var bestChunkIndex = 0
 		var bestChunk: Chunk = null
 		var bestDistance = 0
 		for i in range(len(loadChunks)):
@@ -134,7 +132,6 @@ func _loadChunks():
 			var chunk = Main.chunks[chunkKey]
 			var distance = Vector3(playerChunkPosition).distance_squared_to(Vector3(chunk.chunkPosition))
 			if (distance < bestDistance || i == 0):
-				bestChunkIndex = i
 				bestChunk = chunk
 				bestDistance = distance
 		if bestChunk != null:
@@ -142,7 +139,7 @@ func _loadChunks():
 			_selectedGenerateChunk = bestChunk
 			loadChunks = loadChunks.filter(func (key): return key != bestChunk.chunkKey)
 
-func _multiplayerProcess(delta):
+func _multiplayerProcess(_delta):
 	updatePosition.rpc(player.position, player.mouse_vector)
 	
 	var timeout = Time.get_ticks_msec() - 1000
@@ -154,28 +151,28 @@ func _multiplayerProcess(delta):
 	_lobbyPlayers = _lobbyPlayers.filter(func (op): return op.update >= timeout)
 
 @rpc("any_peer", "call_local")
-func updatePosition(position:Vector3, angle:Vector2):
+func updatePosition(playerPosition:Vector3, angle:Vector2):
 	var id = multiplayer.get_remote_sender_id()
 	if id != multiplayer.get_unique_id():
 		var found = false
 		for i in range(len(_lobbyPlayers)):
 			var op:OtherPlayer = _lobbyPlayers[i]
 			if op.id == id:
-				op.currentPosition = position
+				op.currentPosition = playerPosition
 				op.currentAngle = angle
 				op.update = Time.get_ticks_msec()
 				found = true
 		if not found:
 			var op = OtherPlayer.instantiate()
 			op.id = id
-			op.currentPosition = position
+			op.currentPosition = playerPosition
 			op.currentAngle = angle
 			op.update = Time.get_ticks_msec()
 			add_child(op)
 			_lobbyPlayers.push_back(op)
 
-func _connected(id):
-	print("[Signaling] Server connected with ID: %d" % id)
+func _connected(id, success):
+	print("[Signaling] Server connected with ID: %d - %s" % [id, success])
 
 func _disconnected():
 	print("[Signaling] Server disconnected: %d - %s" % [client.code, client.reason])

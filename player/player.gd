@@ -26,7 +26,7 @@ func _ready():
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	_changeCameraMode(is_camera_first_person)
 
-func _process(delta):
+func _process(_delta):
 	if Input.is_action_pressed("menu"):
 		if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
