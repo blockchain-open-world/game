@@ -11,6 +11,8 @@ outline_size = 3
 outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="Environment" id="Environment_dakss"]
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.2
 volumetric_fog_albedo = Color(0, 0, 0, 1)
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_v11m2"]
